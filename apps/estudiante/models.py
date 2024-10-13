@@ -3,7 +3,8 @@ from apps.usuario.models import Usuario
 
 class Estudiante(models.Model):
     nombres = models.CharField(max_length=255)
-    apellidos = models.CharField(max_length=255)
+    apellido_paterno = models.CharField(max_length=255)
+    apellido_materno = models.CharField(max_length=255)
     matricula = models.CharField(max_length=100)
     is_status = models.BooleanField(default=True)
     

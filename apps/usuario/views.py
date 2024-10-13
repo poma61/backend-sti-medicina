@@ -3,9 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UsuarioSerializer
 from .models import Usuario
+from apps.estudiante.models import Estudiante
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+# Todas estas clases se deben crear usuario tambien se debe crear estudiantes al mismo tiempo
+# Cada una debe ir a la App de EStudiante  Y No estar en la app Usuario
 
 class UsuarioListCreateView(APIView):
     authentication_classes = [JWTAuthentication]  # Requiere autenticación con JWT
@@ -109,11 +112,16 @@ class UsuarioUpdateDeleteView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+   # Esta funcion No es necesario ya que se eliminara el usuario al eliminar el estudiante
     def delete(self, request, id):
         try:
+            
             user = Usuario.objects.get(id=id, is_status=True)
             user.is_status = False
             user.save()
+            
+            # NOTA ************************** Eliminar tambien al estudiante
+            
 
             return Response(
                 {

@@ -23,7 +23,7 @@ class Usuario(models.Model):
     is_active = models.BooleanField()  
     is_status = models.BooleanField(default=True)  
     user_type = models.CharField(max_length=50, choices=options_user_types)
-    picture = models.ImageField(default='/media/usuario/profile.png', upload_to=user_profile_directory_path, verbose_name='Picture')
+    picture = models.ImageField(default='/usuario/profile.png', upload_to=user_profile_directory_path, verbose_name='Picture')
     last_login = models.DateTimeField(null=True, blank=True)  # Campo para almacenar la última fecha de inicio de sesión
     
     created_at = models.DateTimeField(auto_now_add=True)

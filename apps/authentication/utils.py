@@ -13,4 +13,9 @@ class Auth:
     def check_password(raw_password, hashed_password):
         """Verifica si la contraseña proporcionada coincide con la contraseña encriptada."""
         return check_password(raw_password, hashed_password)
+    
+    @staticmethod
+    def user(request_user):
+        return request_user.user
+        
 

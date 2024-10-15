@@ -36,6 +36,7 @@ PROJECT_APPS = [
     "apps.usuario",
     "apps.estudiante",
     "apps.authentication",
+    "apps.personal_institucional",
 ]
 
 THIRD_PARTY_APPS = [
@@ -44,6 +45,7 @@ THIRD_PARTY_APPS = [
     # => Para CORS (Cross-Origin Resource Sharing) permitir que el frontend haga solicitudes al backend alojado en otro dominio.
     "corsheaders",
     "rest_framework_simplejwt",
+    'django_seeding',
 ]
 
 
@@ -72,7 +74,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.0.200:3000",
 ]
 # CSRF_COOKIE_DOMAIN = 'example.com'
-
 # verificar
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
@@ -82,8 +83,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://192.168.0.200:3000",
 ]
-
-
 # Para permitir el contenido
 CORS_ALLOW_HEADERS = (
     "accept",
@@ -93,6 +92,14 @@ CORS_ALLOW_HEADERS = (
     "x-csrftoken",
     "x-requested-with",
 )
+CORS_ALLOW_METHODS = (
+    "DELETE",
+    "GET",
+    "POST",
+    "PUT",
+)
+
+
 
 ROOT_URLCONF = "core.urls"
 
@@ -179,17 +186,17 @@ MEDIA_URL = "media/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# *********************************** Es necesario tener estas lineas ya que estamos definiendo en las claseses Views
+
 REST_FRAMEWORK = {
     # Los usuarios que esten autenticados tendran permisos a las clases
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+       "apps.authentication.jwt_authentication.CustomJWTAuthentication",
     ),
 }
-# *********************************************************************************************************
+
 
 # verificar si se necesita caso caontrario eliminar.
 # AUTHENTICATION_BACKENDS = (

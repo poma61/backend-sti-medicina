@@ -4,15 +4,18 @@ from rest_framework import status
 from .serializers import UsuarioSerializer
 from .models import Usuario
 from apps.estudiante.models import Estudiante
+
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from  apps.authentication.jwt_authentication import CustomJWTAuthentication
+
 
 # Todas estas clases se deben crear usuario tambien se debe crear estudiantes al mismo tiempo
 # Cada una debe ir a la App de EStudiante  Y No estar en la app Usuario
 
 class UsuarioListCreateView(APIView):
-    authentication_classes = [JWTAuthentication]  # Requiere autenticación con JWT
-    permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
+    authentication_classes = [CustomJWTAuthentication]  # Requiere autenticación con JWT
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
@@ -66,7 +69,7 @@ class UsuarioListCreateView(APIView):
 
 
 class UsuarioUpdateDeleteView(APIView):
-    authentication_classes = [JWTAuthentication]  # Requiere autenticación con JWT
+    authentication_classes = [CustomJWTAuthentication]  # Requiere autenticación con JWT
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
     def put(self, request, id):
         try:
@@ -89,9 +92,9 @@ class UsuarioUpdateDeleteView(APIView):
                         "is_data": {},
                         "serializer_errors": serializer.errors,
                         "detail": "Verificar los campos.",
-                        "api_status": True,
+                        "api_status": False,
                     },
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 )
         except Usuario.DoesNotExist:
             return Response(
@@ -115,7 +118,6 @@ class UsuarioUpdateDeleteView(APIView):
    # Esta funcion No es necesario ya que se eliminara el usuario al eliminar el estudiante
     def delete(self, request, id):
         try:
-            
             user = Usuario.objects.get(id=id, is_status=True)
             user.is_status = False
             user.save()

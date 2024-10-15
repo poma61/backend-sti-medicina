@@ -22,7 +22,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
         extra_kwargs = {
             "is_status": {
-                "write_only": True  # El campo NO se devuelve en las respuestas
+                "write_only": True  # El campo NO se devuelve en las respuestas0
             },
             "last_login": {
                 "write_only": True  # El campo NO se devuelve en las respuestas
@@ -43,6 +43,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         # Establecer la contraseña de manera segura
         user.password = Auth.encrypt_password(validated_data["password"])
         user.save()
+        
         return user
 
     def update(self, instance, validated_data):
@@ -52,7 +53,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         instance.user = validated_data.get("user", instance.user)
         instance.email = validated_data.get("email", instance.email)
         instance.user_type = validated_data.get("user_type", instance.user_type)
-
+        
         # Solo actualizar la contraseña si se proporciona
         # Porque si no  lo verificamos podriamos encriptar otra vez algo que ya fue encryptado
         if "password" in validated_data:
@@ -62,3 +63,4 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+

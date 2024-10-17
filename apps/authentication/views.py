@@ -15,7 +15,47 @@ from rest_framework.permissions import IsAuthenticated
 from .jwt_authentication import CustomJWTAuthentication
 
 from .serializers import AuthUsuarioSerializer
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken
+import jwt
+from django.conf import settings
 
+
+class CustomTokenRefreshView(TokenRefreshView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # Procesa la solicitud con en  metodo axistente
+            get_access_token = super().post(request, *args, **kwargs)
+            access_token = get_access_token.data["access"]
+
+            # Decodificar el token para obtener el campo de expiración
+            decoded_access_token = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+            access_token_expiration = decoded_access_token["exp"]
+
+            # Personalizamos la respuesta
+            return Response(
+                {
+                    "new_access_token": access_token,
+                    "access_token_expiration": access_token_expiration,
+                    "api_status": True,
+                    "detail": "Token de acceso renovado exitosamente.",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except InvalidToken as e:
+            # En caso de error de token
+            return Response(
+                {"api_status": False, "detail": "Refresh token no válido."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except Exception as e:
+            # Otro error
+            return Response(
+                {"api_status": False, "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 class LoginView(APIView):
     permission_classes = [AllowAny]  # Permitir el acceso a todos
@@ -38,10 +78,10 @@ class LoginView(APIView):
                     },
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
+
             usuario = Usuario.objects.get(
                 user=request_user, is_status=True, is_active=True
             )
-
             # Verificar si la contraseña es correcta
             if Auth.check_password(request_password, usuario.password):
                 usuario.last_login = timezone.now()
@@ -50,16 +90,17 @@ class LoginView(APIView):
                 # Generar tokens JWT
                 refresh = RefreshToken.for_user(usuario)
                 access_token = refresh.access_token
+                
+                # tiempos de expiración
+                access_token_expiration = access_token["exp"]  # Expiración del access token
+                refresh_token_expiration = refresh["exp"]  # Expiración del refresh token
 
                 return Response(
                     {
-                        "access_auth": {
-                            "refresh_token": str(refresh),
-                            "access_token": str(access_token),
-                            "access_token_expiration": access_token[
-                                "exp"
-                            ],  # Tiempo  unix en segundos
-                        },
+                        "access_token": str(access_token),
+                        "refresh_token": str(refresh),
+                        "access_token_expiration": access_token_expiration , # Tiempo  unix en segundos desde 1970,
+                        "refresh_token_expiration":refresh_token_expiration,
                         "detail": "OK",
                         "api_status": True,
                     },
@@ -81,6 +122,32 @@ class LoginView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+class LogoutView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh_token")
+
+            # Revocar token
+            RefreshToken(refresh_token).blacklist()
+            
+            return Response(
+                {
+                    "detail": "Logout exitoso.",
+                    "api_status": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as es:
+            return Response(
+                    {
+                        "detail": str(e),
+                        "api_status": False,
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
 
 class UserAuthDataView(APIView):
@@ -168,7 +235,9 @@ class UserUpdateView(APIView):
             #  partial=True =>  indica que por json se pueden enviar solo algunos campos
             #  si no tiene ese parametro, entonces serializer indicara que todos los campos son obligatorios
             # usuario_serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
-            usuario_serializer = AuthUsuarioSerializer(usuario, data=request.data,partial=True)
+            usuario_serializer = AuthUsuarioSerializer(
+                usuario, data=request.data, partial=True
+            )
 
             if usuario_serializer.is_valid():
                 usuario_serializer.save()  # Internamente llama a la funcion update

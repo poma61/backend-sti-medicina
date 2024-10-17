@@ -32,8 +32,8 @@ class AuthUsuarioSerializer(serializers.ModelSerializer):
         }
 
     def update(self, instance, validated_data):
-        instance.user = validated_data.get("user")
-        instance.email = validated_data.get("email")
+        instance.user = validated_data.get("user", instance.user)
+        instance.email = validated_data.get("email", instance.email)
         
         if 'picture' in validated_data:
             # Evitamos que elimine la imagen de usuario por defecto
@@ -56,6 +56,10 @@ class AuthUsuarioSerializer(serializers.ModelSerializer):
 
     def validate_picture(self, value):
         if value:
+            max_size = 2 * 1024 * 1024  # 2MB
+            if value.size > max_size:
+                raise serializers.ValidationError(f"La imagen no debe superar los 2MB.")
+
             img_type = imghdr.what(value)
             if img_type not in ['jpeg','png', 'jpg']:
                 raise serializers.ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")

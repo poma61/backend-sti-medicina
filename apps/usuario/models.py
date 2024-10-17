@@ -3,7 +3,7 @@ from django.conf import settings
 import os
 from django.contrib.auth.hashers import make_password, check_password
 from django.utils.crypto import get_random_string
-
+import uuid
 
 def user_profile_directory_path(instance, filename):
     # Limpia el nombre del archivo para evitar path traversal, conserva el nombre del archivo
@@ -29,15 +29,15 @@ class Usuario(models.Model):
         ("doctor", "Doctor(a)"),
         ("administrativo", "Administrativo"),
     )
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.CharField(max_length=255, unique=True)
     email = models.EmailField(max_length=255)
     password = models.CharField(max_length=255)
     is_active = models.BooleanField()
     user_type = models.CharField(max_length=50, choices=options_user_types)
     picture = models.ImageField(
-        default="usuario/profile.png",
+        default="usuario/default_profile.png",
         upload_to=user_profile_directory_path,
-        verbose_name="Picture",
     )
     last_login = models.DateTimeField(
         null=True, blank=True

@@ -1,7 +1,11 @@
 from django.db import models
 from apps.usuario.models import Usuario
+import uuid
 
 class PersonalInstitucional(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True, related_name='personal_institucional')
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     nombres = models.CharField(max_length=255)
     apellido_paterno = models.CharField(max_length=255)
     apellido_materno = models.CharField(max_length=255)
@@ -17,9 +21,4 @@ class PersonalInstitucional(models.Model):
     obervaciones = models.CharField(max_length=400, null=True, blank=True)
     
     is_status = models.BooleanField(default=True)
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    
-    def __str__(self):
-        return self.nombres
     

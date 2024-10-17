@@ -1,23 +1,27 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UsuarioSerializer
-from .models import Usuario
-from apps.estudiante.models import Estudiante
 from rest_framework.permissions import IsAuthenticated
-from  apps.authentication.jwt_authentication import CustomJWTAuthentication
+from apps.authentication.jwt_authentication import CustomJWTAuthentication
 
-# Todas estas clases se deben crear usuario tambien se debe crear estudiantes al mismo tiempo
-# Cada una debe ir a la App de EStudiante  Y No estar en la app Usuario
+from apps.usuario.models import Usuario
+from .models import Estudiante
 
-class UsuarioListCreateView(APIView):
-    authentication_classes = [CustomJWTAuthentication]  # Requiere autenticación con JWT
-    permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
+from .serializers import UsuarioEstudianteSerializer
+
+
+class UsuarioEstListCreateView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            usuarios = Usuario.objects.filter(is_status=True)
-            serializer = UsuarioSerializer(usuarios, many=True)
+            # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
+            user_and_estudiants = Estudiante.objects.filter(
+                is_status=True, usuario__is_status=True
+            )
+
+            serializer = UsuarioEstudianteSerializer(user_and_estudiants, many=True)
 
             return Response(
                 {"is_data": serializer.data, "detail": "OK", "api_status": True},
@@ -32,12 +36,12 @@ class UsuarioListCreateView(APIView):
 
     def post(self, request):
         try:
-            serializer = UsuarioSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
+            est_usuario_serializer = UsuarioEstudianteSerializer(data=request.data)
+            if est_usuario_serializer.is_valid():
+                est_usuario_serializer.save()
                 return Response(
                     {
-                        "is_data": serializer.data,
+                        "is_data": est_usuario_serializer.data,
                         "detail": "Registro creado.",
                         "api_status": True,
                     },
@@ -48,12 +52,12 @@ class UsuarioListCreateView(APIView):
                     {
                         "is_data": {},
                         "detail": "Verificar los campos!",
-                        "serializer_errors": serializer.errors,
+                        "serializer_errors": est_usuario_serializer.errors,
                         "api_status": False,
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-                
+
         except Exception as e:
             return Response(
                 {
@@ -65,19 +69,39 @@ class UsuarioListCreateView(APIView):
             )
 
 
-class UsuarioUpdateDeleteView(APIView):
+class UsuarioEstUpdateDeleteView(APIView):
     authentication_classes = [CustomJWTAuthentication]  # Requiere autenticación con JWT
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
-    def put(self, request, id):
-        try:
-            usuario = Usuario.objects.get(id=id, is_status=True)
-            serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
 
-            if serializer.is_valid():
-                serializer.save()
+    def put(self, request, uuid):
+        try:
+            # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
+            exists_est_and_usuario = Estudiante.objects.filter(
+                usuario__uuid=uuid, usuario__is_status=True, is_status=True
+            ).exists()
+
+            if not exists_est_and_usuario:
                 return Response(
                     {
-                        "is_data": serializer.data,
+                        "is_data": {},
+                        "detail": "Registro no encontrado",
+                        "api_status": False,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Buscar el estudiante que se quiere actualizar
+            usuario_est = Estudiante.objects.get(usuario__uuid=uuid)
+
+            est_usuario_serializer = UsuarioEstudianteSerializer(
+                instance=usuario_est, data=request.data, partial=True
+            )
+
+            if est_usuario_serializer.is_valid():
+                est_usuario_serializer.save()
+                return Response(
+                    {
+                        "is_data": est_usuario_serializer.data,
                         "detail": "Registro actualizado.",
                         "api_status": True,
                     },
@@ -87,21 +111,12 @@ class UsuarioUpdateDeleteView(APIView):
                 return Response(
                     {
                         "is_data": {},
-                        "serializer_errors": serializer.errors,
+                        "serializer_errors": est_usuario_serializer.errors,
                         "detail": "Verificar los campos.",
                         "api_status": True,
                     },
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 )
-        except Usuario.DoesNotExist:
-            return Response(
-                {
-                    "is_data": {},
-                    "detail": "Registro no encontrado.",
-                    "api_status": False,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
         except Exception as e:
             return Response(
                 {
@@ -112,33 +127,24 @@ class UsuarioUpdateDeleteView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-   # Esta funcion No es necesario ya que se eliminara el usuario al eliminar el estudiante
-    def delete(self, request, id):
+    def delete(self, request, uuid):
         try:
-            
-            user = Usuario.objects.get(id=id, is_status=True)
-            user.is_status = False
-            user.save()
-            
-            # NOTA ************************** Eliminar tambien al estudiante
-            
+            # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
+            estudiante = Estudiante.objects.get(usuario__uuid=uuid)
+            estudiante.is_status = False
+            estudiante.save()
+
+            estudiante.usuario.is_status = False
+            estudiante.usuario.save()
 
             return Response(
                 {
                     "detail": "Registro eliminado.",
                     "api_status": True,
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
 
-        except Usuario.DoesNotExist:
-            return Response(
-                {
-                    "detail": "Registro no encontrado.",
-                    "api_status": False,
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
         except Exception as e:
             return Response(
                 {
@@ -147,3 +153,6 @@ class UsuarioUpdateDeleteView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+

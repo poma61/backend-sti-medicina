@@ -45,6 +45,7 @@ THIRD_PARTY_APPS = [
     # => Para CORS (Cross-Origin Resource Sharing) permitir que el frontend haga solicitudes al backend alojado en otro dominio.
     "corsheaders",
     "rest_framework_simplejwt",
+    'rest_framework_simplejwt.token_blacklist',
     'django_seeding',
 ]
 
@@ -206,11 +207,11 @@ REST_FRAMEWORK = {
 # Permisos de los archivos, para no tener error al subirlos
 FILE_UPLOAD_PERMISSIONS = 0o640
 
-# Verificamos si lo quitamos o dejamos
+# Verificamos si lo quitamos o dejamos 
 AUTH_USER_MODEL = "usuario.Usuario"
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=240),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ALGORITHM": "HS256",
     "SIGNING_KEY": env("SECRET_KEY"),

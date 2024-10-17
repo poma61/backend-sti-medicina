@@ -15,7 +15,7 @@ class UsuarioSeeder(seeders.ModelSeeder):
     data = [
         {
             "id": 2,
-            "user": "admin3",
+            "user": "admin1",
             "email": "admin@gmail.com",
             "is_active": True,
             "password": "pbkdf2_sha256$870000$vDxLFnvChTmBHqS286ulQs$c/Mvco/7vyhuWbzlNU/MLVx+jAnANq6t1ifwkMtO/ZU=",  # 1234

@@ -1,7 +1,10 @@
 from apps.usuario.models import Usuario
 from django.db import models
+import uuid
 
 class Estudiante(models.Model):
+    usuario = models.OneToOneField(Usuario, primary_key=True, on_delete=models.CASCADE, related_name='estudiante')    
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     nombres = models.CharField(max_length=255)
     apellido_paterno = models.CharField(max_length=255)
     apellido_materno = models.CharField(max_length=255)
@@ -18,7 +21,6 @@ class Estudiante(models.Model):
     obervaciones = models.CharField(max_length=400, null=True, blank=True) 
     
     is_status = models.BooleanField(default=True)
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     
     def __str__(self):

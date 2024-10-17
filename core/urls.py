@@ -10,8 +10,9 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-    path('api/', include('apps.usuario.urls')),
-    path('api/', include('apps.authentication.urls')),
+    path("api/", include("apps.usuario.urls")),
+    path("api/", include("apps.authentication.urls")),
+    path("api/", include("apps.estudiante.urls")),
 ]
 
 # Para agregar media

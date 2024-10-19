@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
 
-from apps.usuario.models import Usuario
 from .models import Estudiante
 
 from .serializers import UsuarioEstudianteSerializer
@@ -16,7 +15,7 @@ class UsuarioEstListCreateView(APIView):
 
     def get(self, request):
         try:
-            # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
+            # Estudiante tiene una relacion uno a uno con Usuario por esa razon ya estan relacionadas
             user_and_estudiants = Estudiante.objects.filter(
                 is_status=True, usuario__is_status=True
             )
@@ -24,24 +23,24 @@ class UsuarioEstListCreateView(APIView):
             serializer = UsuarioEstudianteSerializer(user_and_estudiants, many=True)
 
             return Response(
-                {"is_data": serializer.data, "detail": "OK", "api_status": True},
+                {"payload": serializer.data, "detail": "OK", "api_status": True},
                 status=status.HTTP_200_OK,
             )
 
         except Exception as e:
             return Response(
-                {"is_data": [], "detail": str(e), "api_status": False},
+                {"payload": [], "detail": str(e), "api_status": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def post(self, request):
         try:
-            est_usuario_serializer = UsuarioEstudianteSerializer(data=request.data)
+            est_usuario_serializer = UsuarioEstudianteSerializer(data=request.data.get("payload"))
             if est_usuario_serializer.is_valid():
                 est_usuario_serializer.save()
                 return Response(
                     {
-                        "is_data": est_usuario_serializer.data,
+                        "payload": est_usuario_serializer.data,
                         "detail": "Registro creado.",
                         "api_status": True,
                     },
@@ -50,7 +49,7 @@ class UsuarioEstListCreateView(APIView):
             else:
                 return Response(
                     {
-                        "is_data": {},
+                        "payload": {},
                         "detail": "Verificar los campos!",
                         "serializer_errors": est_usuario_serializer.errors,
                         "api_status": False,
@@ -61,7 +60,7 @@ class UsuarioEstListCreateView(APIView):
         except Exception as e:
             return Response(
                 {
-                    "is_data": {},
+                    "payload": {},
                     "detail": str(e),
                     "api_status": False,
                 },
@@ -83,25 +82,25 @@ class UsuarioEstUpdateDeleteView(APIView):
             if not exists_est_and_usuario:
                 return Response(
                     {
-                        "is_data": {},
+                        "payload": {},
                         "detail": "Registro no encontrado",
                         "api_status": False,
                     },
                     status=status.HTTP_404_NOT_FOUND,
                 )
-
+      
             # Buscar el estudiante que se quiere actualizar
             usuario_est = Estudiante.objects.get(usuario__uuid=uuid)
 
             est_usuario_serializer = UsuarioEstudianteSerializer(
-                instance=usuario_est, data=request.data, partial=True
+                instance=usuario_est, data=request.data.get("payload"), partial=True
             )
 
             if est_usuario_serializer.is_valid():
                 est_usuario_serializer.save()
                 return Response(
                     {
-                        "is_data": est_usuario_serializer.data,
+                        "payload": est_usuario_serializer.data,
                         "detail": "Registro actualizado.",
                         "api_status": True,
                     },
@@ -110,7 +109,7 @@ class UsuarioEstUpdateDeleteView(APIView):
             else:
                 return Response(
                     {
-                        "is_data": {},
+                        "payload": {},
                         "serializer_errors": est_usuario_serializer.errors,
                         "detail": "Verificar los campos.",
                         "api_status": True,
@@ -119,40 +118,38 @@ class UsuarioEstUpdateDeleteView(APIView):
                 )
         except Exception as e:
             return Response(
-                {
-                    "is_data": {},
-                    "detail": str(e),
-                    "api_status": False,
-                },
+                {"payload": {}, "detail": str(e), "api_status": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def delete(self, request, uuid):
         try:
+            # Veriricamos si estudiante existe
+            exists_user_estudiante = Estudiante.objects.filter(
+                is_status=True, usuario__is_status=True, usuario__uuid=uuid
+            ).exists()
+            if not exists_user_estudiante:
+                return Response(
+                    {"detail": "Registro no encontrado.", "api_status": False},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
             # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
             estudiante = Estudiante.objects.get(usuario__uuid=uuid)
             estudiante.is_status = False
             estudiante.save()
 
             estudiante.usuario.is_status = False
+            estudiante.usuario.is_active = False
             estudiante.usuario.save()
 
             return Response(
-                {
-                    "detail": "Registro eliminado.",
-                    "api_status": True,
-                },
+                {"detail": "Registro eliminado.", "api_status": True},
                 status=status.HTTP_200_OK,
             )
 
         except Exception as e:
             return Response(
-                {
-                    "detail": str(e),
-                    "api_status": False,
-                },
+                {"detail": str(e), "api_status": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-

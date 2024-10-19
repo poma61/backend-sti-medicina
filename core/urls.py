@@ -13,6 +13,7 @@ urlpatterns = [
     path("api/", include("apps.usuario.urls")),
     path("api/", include("apps.authentication.urls")),
     path("api/", include("apps.estudiante.urls")),
+    path("api/", include("apps.personal_institucional.urls")), 
 ]
 
 # Para agregar media

@@ -49,8 +49,10 @@ class UsuarioSerializer(serializers.ModelSerializer):
         instance.user_type = validated_data.get("user_type", instance.user_type)
 
         if 'picture' in validated_data:
-            # Evitamos que elimine la imagen de usuario por defecto
-            if instance.picture.name != "usuario/default_profile.png":
+            if instance.picture.name == "usuario/default_profile.png":
+                # si es la imagen por defecto asignamos la imagen y NO se elimina la imagen por defecto
+                instance.picture = validated_data.get('picture')
+            else:
                 # Eliminación de la imagen anterior
                 previous_picture_path = os.path.join(settings.MEDIA_ROOT, instance.picture.name)
                 if os.path.exists(previous_picture_path):

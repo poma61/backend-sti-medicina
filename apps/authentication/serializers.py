@@ -36,14 +36,16 @@ class AuthUsuarioSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get("email", instance.email)
         
         if 'picture' in validated_data:
-            # Evitamos que elimine la imagen de usuario por defecto
-            if instance.picture != "usuario/default_profile.png":
+           if  instance.picture.name == "usuario/default_profile.png":
+                # si es la imagen por defecto asignamos la imagen y NO se elimina la imagen por defecto
+                instance.picture = validated_data.get('picture')
+           else:
                 # Eliminación de la imagen anterior
                 previous_picture_path = os.path.join(settings.MEDIA_ROOT, instance.picture.name)
                 if os.path.exists(previous_picture_path):
                     os.remove(previous_picture_path)
-                # Cargamos la nueva imagen    
-                instance.picture = validated_data.get('picture')
+                    # Cargamos la nueva imagen    
+                    instance.picture = validated_data.get('picture')
            
         instance.password = Auth.encrypt_password(
             validated_data.get("new_password")

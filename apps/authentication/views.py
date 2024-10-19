@@ -186,7 +186,7 @@ class UserAuthDataView(APIView):
                 )
             return Response(
                 {
-                    "is_data": {
+                    "payload": {
                         "user": estudiante_or_personal_inst.usuario.user,
                         "nombres": estudiante_or_personal_inst.nombres,
                         "apellido_paterno": estudiante_or_personal_inst.apellido_paterno,
@@ -205,7 +205,7 @@ class UserAuthDataView(APIView):
             )
         except Exception as e:
             return Response(
-                {"is_data": {}, "detail": str(e), "api_status": False},
+                {"payload": {}, "detail": str(e), "api_status": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -243,7 +243,7 @@ class UserUpdateView(APIView):
                 usuario_serializer.save()  # Internamente llama a la funcion update
                 return Response(
                     {
-                        "is_data": usuario_serializer.data,
+                        "payload": usuario_serializer.data,
                         "detail": "Registro actualizado.",
                         "api_status": True,
                     },
@@ -252,7 +252,7 @@ class UserUpdateView(APIView):
             else:
                 return Response(
                     {
-                        "is_data": {},
+                        "payload": {},
                         "serializer_errors": usuario_serializer.errors,
                         "detail": "Verificar los campos.",
                         "api_status": False,
@@ -262,7 +262,7 @@ class UserUpdateView(APIView):
         except Exception as e:
             return Response(
                 {
-                    "is_data": {},
+                    "payload": {},
                     "detail": str(e),
                     "api_status": False,
                 },

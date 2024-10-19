@@ -12,14 +12,14 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estudiante
         fields = "__all__"  # serializar todos
+        # solo lectura
         read_only_fields = (
             "created_at",
             "uuid",
-        )  # solo lectura
+        )
         extra_kwargs = {
-            "is_status": {
-                "write_only": True
-            }  # El campo NO se devuelve en las respuestas
+            # El campo NO se devuelve en las respuestas
+            "is_status": {"write_only": True},
         }
 
     # # Aseguramos que UsuarioSerializer es una instancia al momento de actualizar datos
@@ -33,15 +33,14 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
     #     ):
     #         self.fields["usuario"] = UsuarioSerializer(instance=self.instance.usuario)
 
-    # Verificar si este metodo funciona 
+    # Verificar si este metodo funciona
     def to_internal_value(self, data):
         """
         Sobrescribe el método to_internal_value para pasar la instancia de usuarioc para la actualizacion
         """
-        if self.instance and hasattr(self.instance, 'usuario'):
-            self.fields['usuario'] = UsuarioSerializer(instance=self.instance.usuario)
+        if self.instance and hasattr(self.instance, "usuario"):
+            self.fields["usuario"] = UsuarioSerializer(instance=self.instance.usuario)
         return super().to_internal_value(data)
-
 
     def create(self, validated_data):
         # Extraer los datos de usuario

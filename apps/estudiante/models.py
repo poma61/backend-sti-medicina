@@ -23,6 +23,5 @@ class Estudiante(models.Model):
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     
-    def __str__(self):
-        return self.nombres
+
     

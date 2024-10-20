@@ -39,7 +39,7 @@ class UsuarioPersonalInstListCreateView(APIView):
 
     def post(self, request):
         try:
-            serializer = UsuarioPersonalInstSerializer(data=request.data.get("payload"))
+            serializer = UsuarioPersonalInstSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(
@@ -91,7 +91,7 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
             # Ya no necesitamos verificar el is_status, se verifico arriba
             usuario_personal_inst = PersonalInstitucional.objects.get(usuario__uuid=uuid)
             serializer = UsuarioPersonalInstSerializer(
-                instance=usuario_personal_inst, data=request.data.get("payload"), partial=True
+                instance=usuario_personal_inst, data=request.data, partial=True
             )
 
             if serializer.is_valid():

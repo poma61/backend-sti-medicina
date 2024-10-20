@@ -6,6 +6,7 @@ from django.utils.crypto import get_random_string
 import uuid
 
 def user_profile_directory_path(instance, filename):
+    return filename
     # Limpia el nombre del archivo para evitar path traversal, conserva el nombre del archivo
     filename = os.path.basename(filename)
 

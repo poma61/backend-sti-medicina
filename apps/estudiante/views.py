@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
+from rest_framework.parsers import  MultiPartParser 
 
 from .models import Estudiante
 
@@ -12,8 +13,9 @@ from .serializers import UsuarioEstudianteSerializer
 class UsuarioEstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
 
-    def get(self, request):
+    def get(self, request, format=None):
         try:
             # Estudiante tiene una relacion uno a uno con Usuario por esa razon ya estan relacionadas
             user_and_estudiants = Estudiante.objects.filter(
@@ -33,9 +35,40 @@ class UsuarioEstListCreateView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def post(self, request):
+    def post(self, request, format=None):
         try:
-            est_usuario_serializer = UsuarioEstudianteSerializer(data=request.data.get("payload"))
+            data = request.data
+
+            usuario_data = {
+                "id": data.get("usuario[id]"),
+                "user": data.get("usuario[user]"),
+                "password": data.get("usuario[password]"),
+                "email": data.get("usuario[email]"),
+                "is_active": data.get("usuario[is_active]"),
+                "user_type": data.get("usuario[user_type]"),
+            }
+            # Solo agregar el picture si existe
+            if "usuario[picture]" in data:
+                usuario_data["picture"] = data.get("usuario[picture]")
+
+            # Crear un nuevo diccionario con los datos correctos
+            reorganized_data = {
+                "usuario": usuario_data,
+                "nombres": data.get("nombres"),
+                "apellido_paterno": data.get("apellido_paterno"),
+                "apellido_materno": data.get("apellido_materno"),
+                "ci": data.get("ci"),
+                "ci_expedido": data.get("ci_expedido"),
+                "genero": data.get("genero"),
+                "fecha_nacimiento": data.get("fecha_nacimiento"),
+                "numero_contacto": data.get("numero_contacto"),
+                "direccion": data.get("direccion"),
+                "matricula_univ": data.get("matricula_univ"),
+                "internado_rot": data.get("internado_rot"),
+                "obervaciones": data.get("obervaciones"),
+            }
+            est_usuario_serializer = UsuarioEstudianteSerializer(data=reorganized_data)
+
             if est_usuario_serializer.is_valid():
                 est_usuario_serializer.save()
                 return Response(
@@ -71,6 +104,7 @@ class UsuarioEstListCreateView(APIView):
 class UsuarioEstUpdateDeleteView(APIView):
     authentication_classes = [CustomJWTAuthentication]  # Requiere autenticación con JWT
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
+    
 
     def put(self, request, uuid):
         try:
@@ -88,12 +122,45 @@ class UsuarioEstUpdateDeleteView(APIView):
                     },
                     status=status.HTTP_404_NOT_FOUND,
                 )
-      
+
             # Buscar el estudiante que se quiere actualizar
             usuario_est = Estudiante.objects.get(usuario__uuid=uuid)
 
+            data = request.data
+            usuario_data = {
+                "id": data.get("usuario[id]"),
+                "user": data.get("usuario[user]"),
+                "email": data.get("usuario[email]"),
+                "is_active": data.get("usuario[is_active]"),
+                "user_type": data.get("usuario[user_type]"),
+            }
+
+            # Solo agregar el password si existe
+            if "usuario[password]" in data:
+                usuario_data["password"] = data.get("usuario[password]")
+            # Solo agregar el picture si existe
+            if "usuario[picture]" in data:
+                usuario_data["picture"] = data.get("usuario[picture]")
+
+            # Crear un nuevo diccionario con los datos correctos
+            reorganized_data = {
+                "usuario": usuario_data,
+                "nombres": data.get("nombres"),
+                "apellido_paterno": data.get("apellido_paterno"),
+                "apellido_materno": data.get("apellido_materno"),
+                "ci": data.get("ci"),
+                "ci_expedido": data.get("ci_expedido"),
+                "genero": data.get("genero"),
+                "fecha_nacimiento": data.get("fecha_nacimiento"),
+                "numero_contacto": data.get("numero_contacto"),
+                "direccion": data.get("direccion"),
+                "matricula_univ": data.get("matricula_univ"),
+                "internado_rot": data.get("internado_rot"),
+                "obervaciones": data.get("obervaciones"),
+            }
+
             est_usuario_serializer = UsuarioEstudianteSerializer(
-                instance=usuario_est, data=request.data.get("payload"), partial=True
+                instance=usuario_est, data=reorganized_data, partial=True
             )
 
             if est_usuario_serializer.is_valid():
@@ -112,7 +179,7 @@ class UsuarioEstUpdateDeleteView(APIView):
                         "payload": {},
                         "serializer_errors": est_usuario_serializer.errors,
                         "detail": "Verificar los campos.",
-                        "api_status": True,
+                        "api_status": False,
                     },
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 )

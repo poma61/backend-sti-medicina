@@ -3,7 +3,8 @@ from .models import Usuario
 from django.contrib.auth.hashers import make_password
 from apps.authentication.utils import Auth
 from .validators import custom_password_validator, custom_email_validator
-
+import os
+from django.conf import settings
 
 class UsuarioSerializer(serializers.ModelSerializer):
 

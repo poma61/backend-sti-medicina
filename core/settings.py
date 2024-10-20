@@ -45,8 +45,8 @@ THIRD_PARTY_APPS = [
     # => Para CORS (Cross-Origin Resource Sharing) permitir que el frontend haga solicitudes al backend alojado en otro dominio.
     "corsheaders",
     "rest_framework_simplejwt",
-    'rest_framework_simplejwt.token_blacklist',
-    'django_seeding',
+    "rest_framework_simplejwt.token_blacklist",
+    "django_seeding",
 ]
 
 
@@ -67,23 +67,18 @@ MIDDLEWARE = [
 
 # Los llamados autorizados
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://192.168.0.200:3000",
 ]
-# CSRF_COOKIE_DOMAIN = 'example.com'
+# CSRF_COOKIE_DOMAIN = 'http://localhost:3000'
 # verificar
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://192.168.0.200:3000",
 ]
+# CORS_ALLOW_ALL_ORIGINS = True
 # Para permitir el contenido
 CORS_ALLOW_HEADERS = (
     "accept",
@@ -93,14 +88,13 @@ CORS_ALLOW_HEADERS = (
     "x-csrftoken",
     "x-requested-with",
 )
+
 CORS_ALLOW_METHODS = (
-    "DELETE",
-    "GET",
-    "POST",
-    "PUT",
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
 )
-
-
 
 ROOT_URLCONF = "core.urls"
 
@@ -194,7 +188,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
-       "apps.authentication.jwt_authentication.CustomJWTAuthentication",
+        "apps.authentication.jwt_authentication.CustomJWTAuthentication",
     ),
 }
 
@@ -207,7 +201,7 @@ REST_FRAMEWORK = {
 # Permisos de los archivos, para no tener error al subirlos
 FILE_UPLOAD_PERMISSIONS = 0o640
 
-# Verificamos si lo quitamos o dejamos 
+# Verificamos si lo quitamos o dejamos
 AUTH_USER_MODEL = "usuario.Usuario"
 
 SIMPLE_JWT = {

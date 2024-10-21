@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
-from rest_framework.parsers import  MultiPartParser 
+from rest_framework.parsers import MultiPartParser, JSONParser
 
 from .models import Estudiante
 
@@ -104,7 +104,8 @@ class UsuarioEstListCreateView(APIView):
 class UsuarioEstUpdateDeleteView(APIView):
     authentication_classes = [CustomJWTAuthentication]  # Requiere autenticación con JWT
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
-    
+    parser_classes = [MultiPartParser]
+
     def put(self, request, uuid):
         try:
             # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
@@ -137,7 +138,7 @@ class UsuarioEstUpdateDeleteView(APIView):
             # Verifica si el valor NO es  None o vacio
             if data.get("usuario[password]"):
                 usuario_data["password"] = data.get("usuario[password]")
-             # Verifica si el valor NO es  None o vacio
+            # Verifica si el valor NO es  None o vacio
             if data.get("usuario[picture]"):
                 usuario_data["picture"] = data.get("usuario[picture]")
 
@@ -154,12 +155,14 @@ class UsuarioEstUpdateDeleteView(APIView):
                 "numero_contacto": data.get("numero_contacto"),
                 "direccion": data.get("direccion"),
                 "matricula_univ": data.get("matricula_univ"),
-                "internado_rot": data.get("internado_rot") ,
+                "internado_rot": data.get("internado_rot"),
                 "observaciones": data.get("observaciones"),
             }
 
             est_usuario_serializer = UsuarioEstudianteSerializer(
-                instance=usuario_est, data=reorganized_data, partial=True
+                instance=usuario_est,
+                data=reorganized_data,
+                partial=True,
             )
 
             if est_usuario_serializer.is_valid():

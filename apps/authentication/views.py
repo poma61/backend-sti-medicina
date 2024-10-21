@@ -68,12 +68,25 @@ class LoginView(APIView):
 
             # Verificar si el usuario existe
             exists_usuario = Usuario.objects.filter(
-                user=request_user, is_status=True, is_active=True
+                user=request_user, is_status=True,
             ).exists()
             if not exists_usuario:
                 return Response(
                     {
                         "detail": "Credenciales incorrectas.",
+                        "api_status": False,
+                    },
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+            # Verificar si esta deshabilitado
+            exists_usuario = Usuario.objects.filter(
+                 user=request_user, is_active=False
+            ).exists()
+            if exists_usuario:
+                return Response(
+                    {
+                        "detail": "El usuario fue deshabilitado; contactese con el administrador del sistema.",
                         "api_status": False,
                     },
                     status=status.HTTP_401_UNAUTHORIZED,

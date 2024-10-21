@@ -51,7 +51,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         instance.is_active = validated_data.get("is_active", instance.is_active)
         instance.user_type = validated_data.get("user_type", instance.user_type)
 
-        if "picture" in validated_data:
+        if validated_data.get("picture"):
             if instance.picture.name == "usuario/default_profile.png":
                 # si es la imagen por defecto asignamos la imagen y NO se elimina la imagen por defecto
                 instance.picture = validated_data.get("picture")
@@ -66,7 +66,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 instance.picture = validated_data.get("picture")
 
         # Solo actualizar la contraseña si se proporciona
-        if "password" in validated_data:
+        if validated_data.get("password"):
             instance.password = Auth.encrypt_password(
                 validated_data.get("password")
             )  # Encriptar y establecer

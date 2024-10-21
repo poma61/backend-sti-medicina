@@ -3,6 +3,7 @@ from .models import Estudiante
 from apps.usuario.serializers import UsuarioSerializer
 from apps.usuario.models import Usuario
 from django.db.models import QuerySet
+from .validators import custom_number_validator
 
 
 class UsuarioEstudianteSerializer(serializers.ModelSerializer):
@@ -20,6 +21,8 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             # El campo NO se devuelve en las respuestas
             "is_status": {"write_only": True},
+            "numero_contacto": {"validators": [custom_number_validator]},
+            "matricula_univ": {"validators": [custom_number_validator]},
         }
 
     # # Aseguramos que UsuarioSerializer es una instancia al momento de actualizar datos
@@ -33,7 +36,6 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
     #     ):
     #         self.fields["usuario"] = UsuarioSerializer(instance=self.instance.usuario)
 
-    # Verificar si este metodo funciona
     def to_internal_value(self, data):
         """
         Sobrescribe el método to_internal_value para pasar la instancia de usuarioc para la actualizacion

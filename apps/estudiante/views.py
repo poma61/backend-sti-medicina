@@ -47,8 +47,8 @@ class UsuarioEstListCreateView(APIView):
                 "is_active": data.get("usuario[is_active]"),
                 "user_type": data.get("usuario[user_type]"),
             }
-            # Solo agregar el picture si existe
-            if "usuario[picture]" in data:
+
+            if data.get("usuario[picture]"):
                 usuario_data["picture"] = data.get("usuario[picture]")
 
             # Crear un nuevo diccionario con los datos correctos
@@ -65,7 +65,7 @@ class UsuarioEstListCreateView(APIView):
                 "direccion": data.get("direccion"),
                 "matricula_univ": data.get("matricula_univ"),
                 "internado_rot": data.get("internado_rot"),
-                "obervaciones": data.get("obervaciones"),
+                "observaciones": data.get("observaciones"),
             }
             est_usuario_serializer = UsuarioEstudianteSerializer(data=reorganized_data)
 
@@ -105,7 +105,6 @@ class UsuarioEstUpdateDeleteView(APIView):
     authentication_classes = [CustomJWTAuthentication]  # Requiere autenticación con JWT
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
     
-
     def put(self, request, uuid):
         try:
             # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
@@ -135,11 +134,11 @@ class UsuarioEstUpdateDeleteView(APIView):
                 "user_type": data.get("usuario[user_type]"),
             }
 
-            # Solo agregar el password si existe
-            if "usuario[password]" in data:
+            # Verifica si el valor NO es  None o vacio
+            if data.get("usuario[password]"):
                 usuario_data["password"] = data.get("usuario[password]")
-            # Solo agregar el picture si existe
-            if "usuario[picture]" in data:
+             # Verifica si el valor NO es  None o vacio
+            if data.get("usuario[picture]"):
                 usuario_data["picture"] = data.get("usuario[picture]")
 
             # Crear un nuevo diccionario con los datos correctos
@@ -155,8 +154,8 @@ class UsuarioEstUpdateDeleteView(APIView):
                 "numero_contacto": data.get("numero_contacto"),
                 "direccion": data.get("direccion"),
                 "matricula_univ": data.get("matricula_univ"),
-                "internado_rot": data.get("internado_rot"),
-                "obervaciones": data.get("obervaciones"),
+                "internado_rot": data.get("internado_rot") ,
+                "observaciones": data.get("observaciones"),
             }
 
             est_usuario_serializer = UsuarioEstudianteSerializer(

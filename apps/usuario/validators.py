@@ -1,5 +1,6 @@
 from rest_framework import serializers
 import re
+import imghdr
 
 def custom_password_validator(value):
     # Validar que la contraseña tenga al menos 8 caracteres
@@ -30,3 +31,14 @@ def custom_email_validator(value):
         )
     return value
     
+def custom_picture_validator(value):
+        if value:
+            img_type = imghdr.what(value)
+            if img_type not in ['jpeg','png', 'jpg']:
+                raise serializers.ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")
+
+            max_size = 3 * 1024 * 1024  # 3MB
+            if value.size > max_size:
+                raise serializers.ValidationError(f"La imagen no debe superar los 2MB.")
+
+        return value

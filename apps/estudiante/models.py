@@ -18,10 +18,11 @@ class Estudiante(models.Model):
     matricula_univ = models.CharField(max_length=100)
     internado_rot = models.CharField(max_length=255)
     # por defecto blank=False indica que debe ser obligatorio en json y formularios django
-    obervaciones = models.CharField(max_length=400, null=True, blank=True) 
+    observaciones = models.CharField(max_length=400, null=True, blank=True) 
     
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     
 
     

@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
 
+from rest_framework.parsers import MultiPartParser
 from .serializers import UsuarioPersonalInstSerializer
 from .models import PersonalInstitucional
 
@@ -11,6 +12,7 @@ from .models import PersonalInstitucional
 class UsuarioPersonalInstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
 
     def get(self, request):
         try:
@@ -19,7 +21,6 @@ class UsuarioPersonalInstListCreateView(APIView):
             user_personal_inst = PersonalInstitucional.objects.filter(
                 is_status=True, usuario__is_status=True
             )
-
             serializer = UsuarioPersonalInstSerializer(user_personal_inst, many=True)
 
             return Response(
@@ -30,7 +31,6 @@ class UsuarioPersonalInstListCreateView(APIView):
                 },
                 status=status.HTTP_200_OK,
             )
-
         except Exception as e:
             return Response(
                 {"payload": [], "detail": str(e), "api_status": False},
@@ -39,7 +39,36 @@ class UsuarioPersonalInstListCreateView(APIView):
 
     def post(self, request):
         try:
-            serializer = UsuarioPersonalInstSerializer(data=request.data)
+            data = request.data
+
+            usuario_data = {
+                "user": data.get("usuario[user]"),
+                "password": data.get("usuario[password]"),
+                "email": data.get("usuario[email]"),
+                "is_active": data.get("usuario[is_active]"),
+                "user_type": data.get("usuario[user_type]"),
+            }
+
+            if data.get("usuario[picture]"):
+                usuario_data["picture"] = data.get("usuario[picture]")
+
+            # Crear un nuevo diccionario con los datos correctos
+            reorganized_data = {
+                "usuario": usuario_data,
+                "nombres": data.get("nombres"),
+                "apellido_paterno": data.get("apellido_paterno"),
+                "apellido_materno": data.get("apellido_materno"),
+                "ci": data.get("ci"),
+                "ci_expedido": data.get("ci_expedido"),
+                "genero": data.get("genero"),
+                "fecha_nacimiento": data.get("fecha_nacimiento"),
+                "numero_contacto": data.get("numero_contacto"),
+                "direccion": data.get("direccion"),
+                "cargo": data.get("matricula_univ"),
+                "grado_academico": data.get("grado_academico"),
+                "observaciones": data.get("observaciones"),
+            }
+            serializer = UsuarioPersonalInstSerializer(data=reorganized_data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(
@@ -71,6 +100,7 @@ class UsuarioPersonalInstListCreateView(APIView):
 class UsuarioPersonalInstUpdateDeleteView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CustomJWTAuthentication]
+    parser_classes = [MultiPartParser]
 
     def put(self, request, uuid):
         try:
@@ -88,10 +118,44 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
                     },
                     status=status.HTTP_404_NOT_FOUND,
                 )
+
+            data = request.data
+
+            usuario_data = {
+                "id": data.get("usuario[id]"),
+                "user": data.get("usuario[user]"),
+                "email": data.get("usuario[email]"),
+                "is_active": data.get("usuario[is_active]"),
+                "user_type": data.get("usuario[user_type]"),
+            }
+            # Verifica si el valor NO es  None o vacio
+            if data.get("usuario[password]"):
+                usuario_data["password"] = data.get("usuario[password]")
+
+            if data.get("usuario[picture]"):
+                usuario_data["picture"] = data.get("usuario[picture]")
+
+            # Crear un nuevo diccionario con los datos correctos
+            reorganized_data = {
+                "usuario": usuario_data,
+                "nombres": data.get("nombres"),
+                "apellido_paterno": data.get("apellido_paterno"),
+                "apellido_materno": data.get("apellido_materno"),
+                "ci": data.get("ci"),
+                "ci_expedido": data.get("ci_expedido"),
+                "genero": data.get("genero"),
+                "fecha_nacimiento": data.get("fecha_nacimiento"),
+                "numero_contacto": data.get("numero_contacto"),
+                "direccion": data.get("direccion"),
+                "cargo": data.get("cargo"),
+                "grado_academico": data.get("grado_academico"),
+                "observaciones": data.get("observaciones"),
+            }
+
             # Ya no necesitamos verificar el is_status, se verifico arriba
             usuario_personal_inst = PersonalInstitucional.objects.get(usuario__uuid=uuid)
             serializer = UsuarioPersonalInstSerializer(
-                instance=usuario_personal_inst, data=request.data, partial=True
+                instance=usuario_personal_inst, data=reorganized_data, partial=True
             )
 
             if serializer.is_valid():

@@ -19,11 +19,12 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
             "uuid",
         )
         extra_kwargs = {
-            # El campo NO se devuelve en las respuestas
+            #write_only => El campo NO se devuelve en las respuestas
             "is_status": {"write_only": True},
             "numero_contacto": {"validators": [custom_number_validator]},
             "matricula_univ": {"validators": [custom_number_validator]},
         }
+        
 
     # # Aseguramos que UsuarioSerializer es una instancia al momento de actualizar datos
     # def __init__(self, *args, **kwargs):

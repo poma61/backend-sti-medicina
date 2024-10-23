@@ -31,14 +31,6 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-PROJECT_APPS = [
-    # Aplicaciones del proyecto
-    "apps.usuario",
-    "apps.estudiante",
-    "apps.authentication",
-    "apps.personal_institucional",
-]
-
 THIRD_PARTY_APPS = [
     # Agregar apps
     "rest_framework",
@@ -49,6 +41,16 @@ THIRD_PARTY_APPS = [
     "django_seeding",
 ]
 
+
+PROJECT_APPS = [
+    # Aplicaciones del proyecto
+    "apps.usuario",
+    "apps.estudiante",
+    "apps.authentication",
+    "apps.personal_institucional",
+    "apps.interaccion_gen_ai",
+    "apps.internado_rotatorio",
+]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
@@ -90,10 +92,10 @@ CORS_ALLOW_HEADERS = (
 )
 
 CORS_ALLOW_METHODS = (
-    'GET',
-    'POST',
-    'PUT',
-    'DELETE',
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
 )
 
 ROOT_URLCONF = "core.urls"

@@ -15,20 +15,18 @@ class UsuarioEstListCreateView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
 
-    def get(self, request, format=None):
+    def get(self, request):
         try:
             # Estudiante tiene una relacion uno a uno con Usuario por esa razon ya estan relacionadas
             user_and_estudiants = Estudiante.objects.filter(
                 is_status=True, usuario__is_status=True
             )
-
             serializer = UsuarioEstudianteSerializer(user_and_estudiants, many=True)
 
             return Response(
                 {"payload": serializer.data, "detail": "OK", "api_status": True},
                 status=status.HTTP_200_OK,
             )
-
         except Exception as e:
             return Response(
                 {"payload": [], "detail": str(e), "api_status": False},
@@ -40,7 +38,6 @@ class UsuarioEstListCreateView(APIView):
             data = request.data
 
             usuario_data = {
-                "id": data.get("usuario[id]"),
                 "user": data.get("usuario[user]"),
                 "password": data.get("usuario[password]"),
                 "email": data.get("usuario[email]"),

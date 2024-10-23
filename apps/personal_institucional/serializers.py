@@ -17,7 +17,7 @@ class UsuarioPersonalInstSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             "is_status": {"write_only": True},
-             "numero_contacto": {"validators": [custom_number_validator]},
+            "numero_contacto": {"validators": [custom_number_validator]},
         }
 
     def to_internal_value(self, data):

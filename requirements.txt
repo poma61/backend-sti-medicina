@@ -8,3 +8,5 @@ numpy==2.1.2
 pandas==2.2.3
 pillow==10.4.0
 psycopg2-binary==2.9.9
+django_csp==4.0b1
+openai==1.52.0

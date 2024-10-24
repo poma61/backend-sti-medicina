@@ -40,7 +40,7 @@ class TutorAIGenerateView(APIView):
                 ],
                 top_p=0.9,
                 temperature=0.6,
-                max_tokens=300,
+                max_tokens=500,
                 stream=True,  # Habilitar streaming
                 seed=None,
                 frequency_penalty=None,

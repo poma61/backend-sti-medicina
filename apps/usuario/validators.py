@@ -37,7 +37,7 @@ def custom_picture_validator(value):
             if img_type not in ['jpeg','png', 'jpg']:
                 raise serializers.ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")
 
-            max_size = 3 * 1024 * 1024  # 3MB
+            max_size = 2 * 1024 * 1024  # 3MB
             if value.size > max_size:
                 raise serializers.ValidationError(f"La imagen no debe superar los 2MB.")
 

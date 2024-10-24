@@ -3,7 +3,7 @@ from corsheaders.defaults import default_headers
 import os
 import environ
 from datetime import timedelta
-
+from csp.constants import SELF
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,9 +18,11 @@ DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 
 
+# Hosts del backend
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
+    "192.168.0.200",
 ]
 
 DJANGO_APPS = [
@@ -39,6 +41,7 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "django_seeding",
+    "csp",
 ]
 
 
@@ -64,9 +67,12 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # "django.middleware.clickjacking.XFrameOptionsMiddleware", # bloquea  FRAME, para visualizar archivos pd
+    # others middleware
+    "csp.middleware.CSPMiddleware",
 ]
 
+# Hosts del frontend
 # Los llamados autorizados
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -211,4 +217,20 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ALGORITHM": "HS256",
     "SIGNING_KEY": env("SECRET_KEY"),
+}
+
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+#X_FRAME_OPTIONS = 'ALLOW-FROM http://localhost:3000'
+
+# CSP_FRAME_ANCESTORS = ["'self'", "http://127.0.0.1:3000"]
+
+CONTENT_SECURITY_POLICY = {
+   "EXCLUDE_URL_PREFIXES": ("/media*", ),
+    "DIRECTIVES": {
+        "default-src": [SELF,],
+        "script-src": [SELF,],
+        "img-src": [SELF,],
+       "frame-ancestors": [SELF, "http://localhost:3000", "http://192.168.0.200:3000"],
+    },
 }

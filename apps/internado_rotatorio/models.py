@@ -25,6 +25,7 @@ class Area(models.Model):
 
 class Tema(models.Model):
     title = models.CharField(max_length=100)
+    short_title= models.CharField(max_length=100)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     description = models.CharField(max_length=255)
     contenido = models.TextField()

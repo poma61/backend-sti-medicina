@@ -234,3 +234,4 @@ CONTENT_SECURITY_POLICY = {
        "frame-ancestors": [SELF, "http://localhost:3000", "http://192.168.0.200:3000"],
     },
 }
+

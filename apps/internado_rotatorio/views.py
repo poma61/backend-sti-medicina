@@ -17,16 +17,16 @@ class ListCreateTemaView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, area):
         try:
-            temas = Tema.objects.filter(is_status=True)
+            print(request.data)
+            temas = Tema.objects.filter(is_status=True, area__name=area)
             serializer = AreaAndTemaSerializer(temas, many=True)
 
             return Response(
                 {"payload": serializer.data, "detail": "OK", "api_status": True},
                 status=status.HTTP_200_OK,
             )
-
         except Exception as e:
             return Response(
                 {
@@ -225,13 +225,11 @@ class AIEvaluateQuestions(APIView):
             # Obtener pregunta  respuesta
             text_output = []
             for index, row in enumerate(request_questions, start=1):
-                text_output.append(
-                    f"**{row['pregunta']}\nRespuesta:{row['respuesta']}"
-                )
+                text_output.append(f"**{row['pregunta']}\nRespuesta:{row['respuesta']}")
 
             # Unir todo en un texto plano
             plain_text = "\n".join(text_output)
-            user_auth = Auth.user(request) 
+            user_auth = Auth.user(request)
 
             client = OpenAI(
                 base_url="https://lsrkkppjiuwoo83o.us-east-1.aws.endpoints.huggingface.cloud/v1/",

@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import StreamingHttpResponse
 from rest_framework.permissions import AllowAny
+from gtts import gTTS
+from gtts import gTTS
+import io
 
 
 class TutorAIGenerateView(APIView):
@@ -77,3 +80,47 @@ class TutorAIGenerateView(APIView):
             )
 
 
+class TextToSpeechView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        try:
+            text = request.data.get("text")
+            if text is None:
+                return StreamingHttpResponse(f"No hay texto", status=404)
+
+            # Generar audio
+            tts = gTTS(text=text, lang="es")
+            # Guardar el audio en un objeto de BytesIO en lugar de un archivo
+            audio_bytes = io.BytesIO()
+            tts.write_to_fp(audio_bytes)
+            audio_bytes.seek(0)  # Regresar al inicio del buffer para leerlo desde el comienzo
+            
+            # Leer el archivo de audio y crear un StreamingHttpResponse
+            response = StreamingHttpResponse(audio_bytes, content_type='audio/mpeg')
+            response['Content-Disposition'] = 'attachment; filename="audio.mp3"'
+            return response
+
+        except Exception as e:
+              return StreamingHttpResponse(f"Error al generar audio: {str(e)}", status=500)
+#
+# codigo funciona pero esta guardando el audio
+# class TextToSpeechView(APIView):
+#     permission_classes = [AllowAny]
+#     def post(self, request):
+#         text = request.data.get("text")
+
+#         # Generar audio
+#         tts = gTTS(text='Hola como estas', lang="es",slow=True)
+#         audio_file_path = 'audio.mp3'  # Ruta temporal del archivo de audio
+
+#         # Guardar el audio en un archivo temporal
+#         tts.save(audio_file_path)
+  
+#         # Leer el archivo de audio y crear un StreamingHttpResponse
+#         response = StreamingHttpResponse(open(audio_file_path, 'rb'), content_type='audio/mpeg')
+#         response['Content-Disposition'] = 'attachment; filename="audio.mp3"'
+
+#         # Borrar el archivo de audio después de enviarlo
+#         # os.remove(audio_file_path)
+
+#         return response

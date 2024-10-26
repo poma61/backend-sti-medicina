@@ -170,21 +170,6 @@ class UserAuthDataView(APIView):
 
     def post(self, request):
         try:
-            # Otra forma
-            # # Devuelve el primer estudiante o None
-            # estudiante = (
-            #     Estudiante.objects.select_related("usuario")
-            #     .filter(usuario__id=1)
-            #     .values(
-            #         "nombres",
-            #         "apellido_paterno",
-            #         "apellido_materno",
-            #         "usuario__picture",
-            #     )
-            #     .first() # el primer dato
-            # )
-            # # Para acceder a un dato
-            # picture = estudiante["usuario__picture"]
             auth_user = Auth.user(request)
 
             if auth_user.user_type == "estudiante":
@@ -245,9 +230,6 @@ class UserUpdateView(APIView):
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
 
-            #  partial=True =>  indica que por json se pueden enviar solo algunos campos
-            #  si no tiene ese parametro, entonces serializer indicara que todos los campos son obligatorios
-            # usuario_serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
             usuario_serializer = AuthUsuarioSerializer(
                 usuario, data=request.data, partial=True
             )

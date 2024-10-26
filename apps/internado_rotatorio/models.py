@@ -2,6 +2,7 @@ from django.db import models
 import uuid
 from django.utils.crypto import get_random_string
 from apps.estudiante.models import Estudiante
+import os
 
 def pdf_directory_path(instance, filename):
     # Limpia el nombre del archivo para evitar path traversal, conserva el nombre del archivo
@@ -10,7 +11,7 @@ def pdf_directory_path(instance, filename):
     unique_filename = (
         f"{get_random_string(length=10)}_{get_random_string(length=10)}_{filename}"
     )
-    pdf_directory = "areas_internado_rotatorio/medicina_interna/"
+    pdf_directory = "areas_internado_rotatorio/"
 
     # Devuelve la ruta donde se guardará la nueva imagen
     return os.path.join(pdf_directory, unique_filename)

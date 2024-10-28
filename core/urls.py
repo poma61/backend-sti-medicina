@@ -10,10 +10,11 @@ urlpatterns = [
     path("api/", include("apps.authentication.urls")),
     path("api/", include("apps.estudiante.urls")),
     path("api/", include("apps.personal_institucional.urls")), 
-    path("api/", include("apps.interaccion_gen_ai.urls")), 
+    path("api/", include("apps.tutor_ai.urls")), 
     path("api/", include("apps.internado_rotatorio.urls")),  
 ]
    
 # Para agregar media
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)   
+
 

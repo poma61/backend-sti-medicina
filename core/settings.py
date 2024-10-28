@@ -17,7 +17,6 @@ DEBUG = env("DEBUG")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
 
-
 # Hosts del backend
 ALLOWED_HOSTS = [
     "localhost",
@@ -51,7 +50,7 @@ PROJECT_APPS = [
     "apps.estudiante",
     "apps.authentication",
     "apps.personal_institucional",
-    "apps.interaccion_gen_ai",
+    "apps.tutor_ai",
     "apps.internado_rotatorio",
 ]
 

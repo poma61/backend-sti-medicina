@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class InteraccionGenAiConfig(AppConfig):
+class TutorAiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.interaccion_gen_ai'
+    name = 'apps.tutor_ai'

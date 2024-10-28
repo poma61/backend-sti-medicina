@@ -8,9 +8,13 @@ from apps.authentication.utils import Auth
 
 from .models import Area, Tema
 from .serializers import AreaAndTemaSerializer, TemaSerializer
-
+from .utils import create_chat_completion
 from openai import OpenAI
 from django.http import StreamingHttpResponse
+
+import environ
+env = environ.Env()
+environ.Env.read_env()
 
 
 class ListCreateTemaView(APIView):
@@ -113,6 +117,11 @@ class DetailTemaView(APIView):
             )
 
 
+"""
+Clase para generar cuestionario
+"""
+
+
 class AIGenerateQuestionsView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -132,37 +141,13 @@ class AIGenerateQuestionsView(APIView):
             # obtener el tema
             tema = Tema.objects.get(uuid=request.data.get("uuid"))
 
-            client = OpenAI(
-                base_url="https://lsrkkppjiuwoo83o.us-east-1.aws.endpoints.huggingface.cloud/v1/",
-                api_key="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",
-            )
+            base_url = env("AI_BASE_URL")
+            access_token = env("AI_ACCESS_TOKEN")
 
-            # Crear el chat_completion con streaming habilitado
-            chat_completion = client.chat.completions.create(
-                model="tgi",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": """ 
-                        Eres un tutor en español especializado en medicina. Tu tarea es generar preguntas de un determinado tema de medicina.
-                        Se te proporcionará, el tema, una breve introducción del tema y la cantidad de preguntas. Las preguntas deben ser complejas.
-                        Solo debes generar preguntas de forma directa sin brindar ninguna introduccion ni informacion adicional. 
-                        """,
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""Tema: {tema.short_title}. 
-                     Introducción del tema:{tema.contenido}.
-                     Cantidad preguntas: 10 """,
-                    },
-                ],
-                top_p=0.9,
-                temperature=0.3,
-                max_tokens=600,
-                stream=True,  # Habilitar streaming
-                seed=None,
-                frequency_penalty=None,
-                presence_penalty=None,
+            chat_completion = create_chat_completion(
+                base_url=base_url,
+                access_token=access_token,
+                tema=tema,
             )
 
             # Función generadora para streaming
@@ -185,12 +170,8 @@ class AIGenerateQuestionsView(APIView):
             return response
 
         except Exception as e:
-            return Response(
-                {
-                    "api_status": False,
-                    "detail": str(e),
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            return StreamingHttpResponse(
+                {str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
@@ -227,45 +208,19 @@ class AIEvaluateQuestions(APIView):
             for index, row in enumerate(request_questions, start=1):
                 text_output.append(f"**{row['pregunta']}\nRespuesta:{row['respuesta']}")
 
-            # Unir todo en un texto plano
-            plain_text = "\n".join(text_output)
+            # Unir todo en un texto plano con saltos de linea para cada pregunta y respuesta
+            question_plain_text = "\n".join(text_output)
             user_auth = Auth.user(request)
 
-            client = OpenAI(
-                base_url="https://lsrkkppjiuwoo83o.us-east-1.aws.endpoints.huggingface.cloud/v1/",
-                api_key="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",
-            )
-            # Crear el chat_completion con streaming habilitado
-            chat_completion = client.chat.completions.create(
-                model="tgi",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": f"""Eres un tutor en español especializado en medicina. 
-                        Tu tarea es evaluar el cuestionario del estudiante {user_auth.estudiante.nombres} {user_auth.estudiante.apellido_paterno} {user_auth.estudiante.apellido_materno}.
-                        Se te proporcionara el tema, una breve introduccion del tema y el cuestionario con sus respectivas respuestas. 
-                        Una vez terminado la revisión del cuestionario debes indicar que debe ir al menu del sistema, ir a la opcion TutorAI, para que
-                        pueda realizar sus consultas de manera personalizada y pueda conversar contigo. 
-                        """,
-                    },
-                    {
-                        "role": "user",
-                        "content": f""" Hola soy {user_auth.estudiante.nombres} {user_auth.estudiante.apellido_paterno} {user_auth.estudiante.apellido_materno}.
-                        Te envio mi tema, breve introducción del tema y mi cuestionario para que puedas evaluarme.
-                    Tema: {tema.short_title}. 
-                     Introducción:{tema.contenido}.
-                     cuestionario:
-                     {plain_text}
-                    """,
-                    },
-                ],
-                top_p=0.9,
-                temperature=0.7,
-                max_tokens=1200,
-                stream=True,
-                seed=None,
-                frequency_penalty=None,
-                presence_penalty=None,
+            base_url = env("AI_BASE_URL")
+            access_token = env("AI_ACCESS_TOKEN")
+
+            chat_completion = create_chat_completion(
+                base_url=base_url,
+                access_token=access_token,
+                tema=tema,
+                user_auth=user_auth,
+                question=question_plain_text,
             )
 
             # Función generadora para streaming
@@ -288,10 +243,6 @@ class AIEvaluateQuestions(APIView):
             return response
 
         except Exception as e:
-            return Response(
-                {
-                    "api_status": False,
-                    "detail": str(e),
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            return StreamingHttpResponse(
+                {str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

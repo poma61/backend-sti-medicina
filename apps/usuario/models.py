@@ -11,11 +11,15 @@ def user_profile_directory_path(instance, filename):
         f"{get_random_string(length=10)}_{get_random_string(length=10)}_{filename}"
     )
     user_directory = "usuario/"
-
     # Devuelve la ruta donde se guardará la nueva imagen
     return os.path.join(user_directory, unique_filename)
 
 
+class Permiso(models.Model):
+    name = models.CharField(max_length=100)
+    is_type = models.CharField(max_length=100)
+    code = models.CharField(max_length=100)
+    
 class Usuario(models.Model):
     options_user_types = (
         ("estudiante", "Estudiante"),
@@ -34,9 +38,10 @@ class Usuario(models.Model):
         blank=True,
         null=True,
     )
-    last_login = models.DateTimeField(
-        null=True, blank=True
-    )  # Campo para almacenar la última fecha de inicio de sesión
+    # Campo para almacenar la última fecha de inicio de sesión
+    last_login = models.DateTimeField(null=True, blank=True)
+    permiso = models.ManyToManyField(Permiso, related_name='usuario')
+
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -52,3 +57,4 @@ class Usuario(models.Model):
     @property
     def is_anonymous(self):
         return False
+

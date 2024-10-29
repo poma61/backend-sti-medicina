@@ -8,6 +8,7 @@ from rest_framework.parsers import MultiPartParser
 from .serializers import UsuarioPersonalInstSerializer
 from .models import PersonalInstitucional
 
+from  .utils import process_nested_form_data
 
 class UsuarioPersonalInstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
@@ -39,36 +40,10 @@ class UsuarioPersonalInstListCreateView(APIView):
 
     def post(self, request):
         try:
-            data = request.data
+            process_data = process_nested_form_data(request.data)
 
-            usuario_data = {
-                "user": data.get("usuario[user]"),
-                "password": data.get("usuario[password]"),
-                "email": data.get("usuario[email]"),
-                "is_active": data.get("usuario[is_active]"),
-                "user_type": data.get("usuario[user_type]"),
-            }
+            serializer = UsuarioPersonalInstSerializer(data=process_data)
 
-            if data.get("usuario[picture]"):
-                usuario_data["picture"] = data.get("usuario[picture]")
-
-            # Crear un nuevo diccionario con los datos correctos
-            reorganized_data = {
-                "usuario": usuario_data,
-                "nombres": data.get("nombres"),
-                "apellido_paterno": data.get("apellido_paterno"),
-                "apellido_materno": data.get("apellido_materno"),
-                "ci": data.get("ci"),
-                "ci_expedido": data.get("ci_expedido"),
-                "genero": data.get("genero"),
-                "fecha_nacimiento": data.get("fecha_nacimiento"),
-                "numero_contacto": data.get("numero_contacto"),
-                "direccion": data.get("direccion"),
-                "cargo": data.get("matricula_univ"),
-                "grado_academico": data.get("grado_academico"),
-                "observaciones": data.get("observaciones"),
-            }
-            serializer = UsuarioPersonalInstSerializer(data=reorganized_data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(
@@ -119,43 +94,18 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            data = request.data
+            process_data = process_nested_form_data(request.data)
 
-            usuario_data = {
-                "id": data.get("usuario[id]"),
-                "user": data.get("usuario[user]"),
-                "email": data.get("usuario[email]"),
-                "is_active": data.get("usuario[is_active]"),
-                "user_type": data.get("usuario[user_type]"),
-            }
             # Verifica si el valor NO es  None o vacio
-            if data.get("usuario[password]"):
-                usuario_data["password"] = data.get("usuario[password]")
-
-            if data.get("usuario[picture]"):
-                usuario_data["picture"] = data.get("usuario[picture]")
-
-            # Crear un nuevo diccionario con los datos correctos
-            reorganized_data = {
-                "usuario": usuario_data,
-                "nombres": data.get("nombres"),
-                "apellido_paterno": data.get("apellido_paterno"),
-                "apellido_materno": data.get("apellido_materno"),
-                "ci": data.get("ci"),
-                "ci_expedido": data.get("ci_expedido"),
-                "genero": data.get("genero"),
-                "fecha_nacimiento": data.get("fecha_nacimiento"),
-                "numero_contacto": data.get("numero_contacto"),
-                "direccion": data.get("direccion"),
-                "cargo": data.get("cargo"),
-                "grado_academico": data.get("grado_academico"),
-                "observaciones": data.get("observaciones"),
-            }
+            # if data.get("usuario[password]"):
+              #  usuario_data["password"] = data.get("usuario[password]")
 
             # Ya no necesitamos verificar el is_status, se verifico arriba
-            usuario_personal_inst = PersonalInstitucional.objects.get(usuario__uuid=uuid)
+            usuario_personal_inst = PersonalInstitucional.objects.get(
+                usuario__uuid=uuid
+            )
             serializer = UsuarioPersonalInstSerializer(
-                instance=usuario_personal_inst, data=reorganized_data, partial=True
+                instance=usuario_personal_inst, data=process_data, partial=True
             )
 
             if serializer.is_valid():
@@ -189,7 +139,7 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
         try:
             # Personal institucional ya estan relacionados (uno a uno)
             exists_user_personal_inst = PersonalInstitucional.objects.filter(
-                 is_status=True, usuario__is_status=True, usuario__uuid=uuid
+                is_status=True, usuario__is_status=True, usuario__uuid=uuid
             ).exists()
 
             if not exists_user_personal_inst:
@@ -198,9 +148,7 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            user_personal_inst = PersonalInstitucional.objects.get(
-                usuario__uuid=uuid
-            )
+            user_personal_inst = PersonalInstitucional.objects.get(usuario__uuid=uuid)
             user_personal_inst.is_status = False
             user_personal_inst.save()
 
@@ -210,7 +158,7 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
 
             return Response(
                 {"detail": "Registro eliminado.", "api_status": True},
-                    status=status.HTTP_200_OK,
+                status=status.HTTP_200_OK,
             )
 
         except Exception as e:
@@ -218,3 +166,5 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
                 {"payload": {}, "detail": str(e), "api_status": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+

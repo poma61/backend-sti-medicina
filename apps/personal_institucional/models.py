@@ -23,7 +23,7 @@ class PersonalInstitucional(models.Model):
 
     cargo = models.CharField(max_length=100)
     grado_academico = models.CharField(max_length=100)
-    observaciones = models.CharField(max_length=200, null=True, blank=True)
+    observaciones = models.CharField(max_length=300, null=True, blank=True)
 
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)

@@ -3,6 +3,7 @@ from django.utils.crypto import get_random_string
 import uuid
 import os
 
+
 def user_profile_directory_path(instance, filename):
     # Limpia el nombre del archivo para evitar path traversal, conserva el nombre del archivo
     filename = os.path.basename(filename)
@@ -18,8 +19,10 @@ def user_profile_directory_path(instance, filename):
 class Permiso(models.Model):
     name = models.CharField(max_length=100)
     is_type = models.CharField(max_length=100)
+    is_type_content = models.CharField(max_length=100)
     code = models.CharField(max_length=100)
-    
+
+
 class Usuario(models.Model):
     options_user_types = (
         ("estudiante", "Estudiante"),
@@ -40,7 +43,7 @@ class Usuario(models.Model):
     )
     # Campo para almacenar la última fecha de inicio de sesión
     last_login = models.DateTimeField(null=True, blank=True)
-    permiso = models.ManyToManyField(Permiso, related_name='usuario')
+    permiso = models.ManyToManyField(Permiso, related_name="usuario", blank=True)
 
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -57,4 +60,3 @@ class Usuario(models.Model):
     @property
     def is_anonymous(self):
         return False
-

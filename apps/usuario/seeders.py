@@ -10,36 +10,55 @@ class PermisoSeeder(seeders.ModelSeeder):
     id = "PermisoSeeder"
     model = Permiso
     data = [
+        # modulo
+        {
+            "name": "Acceso al modulo estudiante",
+            "is_type": "module",
+            "is_type_content": "students",
+            "code": "access_students",
+        },
+        {
+            "name": "Acceso al modulo institucional",
+            "is_type": "module",
+            "is_type_content": "institutional_staff",
+            "code": "access_institutional_staff",
+        },
         # permisos estudiantes
-        {"name": "Editar estudiante", "is_type": "data", "code": "data_edit_students"},
+        {
+            "name": "Registrar estudiante",
+            "is_type": "data",
+            "is_type_content": "students",
+            "code": "data_create_students",
+        },
+        {
+            "name": "Editar estudiante",
+            "is_type": "data",
+            "is_type_content": "students",
+            "code": "data_edit_students",
+        },
         {
             "name": "Eliminar estudiante",
             "is_type": "data",
+            "is_type_content": "students",
             "code": "data_delete_students",
         },
-        {"name": "Editar personal", "is_type": "data", "code": "data_edit_personal"},
         # permisos personal
         {
-            "name": "Eliminar personal institucional",
+            "name": "Registrar personal",
             "is_type": "data",
-            "code": "data_delete_personal",
+            "is_type_content": "institutional_staff",
+            "code": "data_create_institutional_staff",
         },
         {
-            "name": "Eliminar personal institucional",
+            "name": "Editar personal",
             "is_type": "data",
-            "code": "data_delete_personal",
+            "is_type_content": "institutional_staff",
+            "code": "data_edit_institutional_staff",
         },
-        # modulo
-         {
-            "name": "Acceso al modulo estudiante",
-            "is_type": "module",
-            "code": "access_personal",
-        },
-          {
-            "name": "Acceso al modulo institucional",
-            "is_type": "module",
-            "code": "access_institucional",
+        {
+            "name": "Eliminar personal",
+            "is_type": "data",
+            "is_type_content": "institutional_staff",
+            "code": "data_delete_institutional_staff",
         },
     ]
-
-

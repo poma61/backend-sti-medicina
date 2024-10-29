@@ -9,7 +9,6 @@ from .models import Estudiante
 
 from .serializers import UsuarioEstudianteSerializer
 
-
 class UsuarioEstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -21,6 +20,7 @@ class UsuarioEstListCreateView(APIView):
             user_and_estudiants = Estudiante.objects.filter(
                 is_status=True, usuario__is_status=True
             )
+            
             serializer = UsuarioEstudianteSerializer(user_and_estudiants, many=True)
 
             return Response(

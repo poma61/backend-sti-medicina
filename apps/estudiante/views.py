@@ -6,12 +6,19 @@ from apps.authentication.jwt_authentication import CustomJWTAuthentication
 from rest_framework.parsers import MultiPartParser, JSONParser
 
 from .models import Estudiante
+from .utils import process_nested_form_data
 
 from .serializers import UsuarioEstudianteSerializer
 
+from apps.usuario.permissions import (
+    CreateEstudentPermission,
+    UpdateEstudentPermission,
+    DeleteEstudentPermission,
+)
+
 class UsuarioEstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CreateEstudentPermission]
     parser_classes = [MultiPartParser]
 
     def get(self, request):
@@ -20,7 +27,7 @@ class UsuarioEstListCreateView(APIView):
             user_and_estudiants = Estudiante.objects.filter(
                 is_status=True, usuario__is_status=True
             )
-            
+
             serializer = UsuarioEstudianteSerializer(user_and_estudiants, many=True)
 
             return Response(
@@ -35,36 +42,9 @@ class UsuarioEstListCreateView(APIView):
 
     def post(self, request, format=None):
         try:
-            data = request.data
+            process_data = process_nested_form_data(request.data)
 
-            usuario_data = {
-                "user": data.get("usuario[user]"),
-                "password": data.get("usuario[password]"),
-                "email": data.get("usuario[email]"),
-                "is_active": data.get("usuario[is_active]"),
-                "user_type": data.get("usuario[user_type]"),
-            }
-
-            if data.get("usuario[picture]"):
-                usuario_data["picture"] = data.get("usuario[picture]")
-
-            # Crear un nuevo diccionario con los datos correctos
-            reorganized_data = {
-                "usuario": usuario_data,
-                "nombres": data.get("nombres"),
-                "apellido_paterno": data.get("apellido_paterno"),
-                "apellido_materno": data.get("apellido_materno"),
-                "ci": data.get("ci"),
-                "ci_expedido": data.get("ci_expedido"),
-                "genero": data.get("genero"),
-                "fecha_nacimiento": data.get("fecha_nacimiento"),
-                "numero_contacto": data.get("numero_contacto"),
-                "direccion": data.get("direccion"),
-                "matricula_univ": data.get("matricula_univ"),
-                "internado_rot": data.get("internado_rot"),
-                "observaciones": data.get("observaciones"),
-            }
-            est_usuario_serializer = UsuarioEstudianteSerializer(data=reorganized_data)
+            est_usuario_serializer = UsuarioEstudianteSerializer(data=process_data)
 
             if est_usuario_serializer.is_valid():
                 est_usuario_serializer.save()
@@ -103,6 +83,16 @@ class UsuarioEstUpdateDeleteView(APIView):
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
     parser_classes = [MultiPartParser]
 
+    def get_permissions(self):
+        # Aplicar permisos según el método de la solicitud
+        if self.request.method == "PUT":
+            self.permission_classes = [UpdateEstudentPermission]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [DeleteEstudentPermission]
+
+        # Llama al método base para obtener los permisos
+        return super().get_permissions()
+
     def put(self, request, uuid):
         try:
             # Estudiante tiene una relacion uno a uno con Usuario por esa reazon ya estan relacionadas
@@ -123,42 +113,17 @@ class UsuarioEstUpdateDeleteView(APIView):
             # Buscar el estudiante que se quiere actualizar
             usuario_est = Estudiante.objects.get(usuario__uuid=uuid)
 
-            data = request.data
-            usuario_data = {
-                "id": data.get("usuario[id]"),
-                "user": data.get("usuario[user]"),
-                "email": data.get("usuario[email]"),
-                "is_active": data.get("usuario[is_active]"),
-                "user_type": data.get("usuario[user_type]"),
-            }
+            data = request.data.copy()
+            # si no tenemos password eliminams el campo
+            # si es update serializer indicara que dicho campo no debe ser vacio
+            if data.get("usuario[password]") in [None, ""]:
+                data.pop("usuario[password]")
 
-            # Verifica si el valor NO es  None o vacio
-            if data.get("usuario[password]"):
-                usuario_data["password"] = data.get("usuario[password]")
-            # Verifica si el valor NO es  None o vacio
-            if data.get("usuario[picture]"):
-                usuario_data["picture"] = data.get("usuario[picture]")
-
-            # Crear un nuevo diccionario con los datos correctos
-            reorganized_data = {
-                "usuario": usuario_data,
-                "nombres": data.get("nombres"),
-                "apellido_paterno": data.get("apellido_paterno"),
-                "apellido_materno": data.get("apellido_materno"),
-                "ci": data.get("ci"),
-                "ci_expedido": data.get("ci_expedido"),
-                "genero": data.get("genero"),
-                "fecha_nacimiento": data.get("fecha_nacimiento"),
-                "numero_contacto": data.get("numero_contacto"),
-                "direccion": data.get("direccion"),
-                "matricula_univ": data.get("matricula_univ"),
-                "internado_rot": data.get("internado_rot"),
-                "observaciones": data.get("observaciones"),
-            }
+            process_data = process_nested_form_data(data)
 
             est_usuario_serializer = UsuarioEstudianteSerializer(
                 instance=usuario_est,
-                data=reorganized_data,
+                data=process_data,
                 partial=True,
             )
 

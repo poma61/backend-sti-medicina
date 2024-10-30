@@ -10,7 +10,6 @@ from .validators import (
 import os
 from django.conf import settings
 
-
 class PermisoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permiso
@@ -18,18 +17,9 @@ class PermisoSerializer(serializers.ModelSerializer):
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    # Campo para recibir los IDs de permisos
-    # write_only = True => si o si debe para que funcione una relacion ManyToMany
-    permiso = serializers.ListField(
-        child=serializers.IntegerField(), write_only=True, required=False
-    )
-
-    # Devuelve los datos completos de los permisos
-    # permisos_asignados = PermisoSerializer(many=True, read_only=True, source='permiso')
-
-    # Campo de solo lectura para devolver únicamente los IDs de permisos
-    permisos_asignados = serializers.PrimaryKeyRelatedField(
-        many=True, read_only=True, source="permiso"
+    # Campo solo para recibir los permisos en una lista
+    permisos = serializers.ListField(
+        child=serializers.CharField(), write_only=True , required=False
     )
 
     class Meta:
@@ -58,39 +48,38 @@ class UsuarioSerializer(serializers.ModelSerializer):
             "picture": {"validators": [custom_picture_validator]},
         }
 
-    def get_permisos_asignados(self, instance):
-        # Devolver una lista de los IDs de permisos asignados al usuario
-        return list(instance.permiso.values_list("id", flat=True))
-
     def create(self, validated_data):
-        # pop => obtiene el valor y  remueve el campo permiso
-        # permiso es una lista de ids
-        permiso_data = validated_data.pop("permiso")
+        # pop => obtiene el valor y  remueve el campo permisos
+        # permisos es una lista de ids
+        permiso_data = validated_data.pop("permisos", [])
         user = Usuario(**validated_data)
 
         user.password = Auth.encrypt_password(validated_data["password"])
         user.save()
 
         if permiso_data and validated_data.get("user_type") != "estudiante":
-            # SELECT * FROM permiso WHERE id IN (1, 3, 5);
-            permisos = Permiso.objects.filter(id__in=permiso_data)
-            user.permiso.set(permisos)  # Agregamos los permiso
+             # SELECT * FROM permiso WHERE code IN (1, 3, 5)
+            permisos = Permiso.objects.filter(code__in=permiso_data)
+            user.permisos.set(permisos)  # Agregamos los permisos
 
         return user
 
     def update(self, instance, validated_data):
-        permiso_data =  validated_data.pop("permiso")
-         # cargamos otros campos
+        permiso_data = validated_data.pop("permisos", [])
+        # cargamos otros campos
         for attr, value in validated_data.items():
             # Excluir los campos "password" y "picture"
             if attr not in ["password", "picture"]:
                 setattr(instance, attr, value)
-
+                
         if permiso_data and validated_data.get("user_type") != "estudiante":
-            # SELECT * FROM permiso WHERE id IN (1, 3, 5)
-            permisos = Permiso.objects.filter(id__in=permiso_data)
-            instance.permiso.set(permisos) # Agregamos los permiso 
-            
+            # SELECT * FROM permiso WHERE code IN (1, 3, 5)
+            permisos = Permiso.objects.filter(code__in=permiso_data)
+            instance.permisos.set(permisos)
+        else:
+            # si no hay permisos eliminamos
+             instance.permisos.clear()
+
         if validated_data.get("picture"):
             if instance.picture.name == "usuario/default_profile.png":
                 # si es la imagen por defecto asignamos la imagen y NO se elimina la imagen por defecto
@@ -107,9 +96,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
         # Solo actualizar la contraseña si se proporciona
         if validated_data.get("password"):
-            instance.password = Auth.encrypt_password(
-                validated_data.get("password")
-            )  
+            instance.password = Auth.encrypt_password(validated_data.get("password"))
 
         instance.save()
         return instance
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        #Aregamos los permisos
+        representation['permisos'] = [permiso.code for permiso in instance.permisos.all()]
+        return representation
+
+

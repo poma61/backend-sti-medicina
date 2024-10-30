@@ -7,36 +7,26 @@ from .models import Permiso
 
 @SeederRegistry.register
 class PermisoSeeder(seeders.ModelSeeder):
-    id = "PermisoSeeder"
+    id = "PermisoSeeder005"
     model = Permiso
     data = [
-        # modulo
-        {
-            "name": "Acceso al modulo estudiante",
-            "is_type": "module",
-            "is_type_content": "students",
-            "code": "access_students",
-        },
-        {
-            "name": "Acceso al modulo institucional",
-            "is_type": "module",
-            "is_type_content": "institutional_staff",
-            "code": "access_institutional_staff",
-        },
         # permisos estudiantes
         {
+            "module": "Estudiante",
             "name": "Registrar estudiante",
             "is_type": "data",
             "is_type_content": "students",
             "code": "data_create_students",
         },
         {
+            "module": "Estudiante",
             "name": "Editar estudiante",
             "is_type": "data",
             "is_type_content": "students",
-            "code": "data_edit_students",
+            "code": "data_update_students",
         },
         {
+            "module": "Estudiante",
             "name": "Eliminar estudiante",
             "is_type": "data",
             "is_type_content": "students",
@@ -44,18 +34,21 @@ class PermisoSeeder(seeders.ModelSeeder):
         },
         # permisos personal
         {
+            "module": "Personal institucional",
             "name": "Registrar personal",
             "is_type": "data",
             "is_type_content": "institutional_staff",
             "code": "data_create_institutional_staff",
         },
         {
+            "module": "Personal institucional",
             "name": "Editar personal",
             "is_type": "data",
             "is_type_content": "institutional_staff",
-            "code": "data_edit_institutional_staff",
+            "code": "data_update_institutional_staff",
         },
         {
+            "module": "Personal institucional",
             "name": "Eliminar personal",
             "is_type": "data",
             "is_type_content": "institutional_staff",

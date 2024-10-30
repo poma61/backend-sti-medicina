@@ -8,11 +8,17 @@ from rest_framework.parsers import MultiPartParser
 from .serializers import UsuarioPersonalInstSerializer
 from .models import PersonalInstitucional
 
-from  .utils import process_nested_form_data
+from .utils import process_nested_form_data
+from apps.usuario.permissions import (
+    CreatePersonalInstPermission,
+    UpdatePersonalInstPermission,
+    DeletePersonalInstPermission,
+)
+
 
 class UsuarioPersonalInstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CreatePersonalInstPermission]
     parser_classes = [MultiPartParser]
 
     def get(self, request):
@@ -73,9 +79,19 @@ class UsuarioPersonalInstListCreateView(APIView):
 
 
 class UsuarioPersonalInstUpdateDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
     authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
+
+    def get_permissions(self):
+        # Aplicar permisos según el método de la solicitud
+        if self.request.method == "PUT":
+            self.permission_classes = [UpdatePersonalInstPermission]
+        elif self.request.method == "DELETE":
+            self.permission_classes = [DeletePersonalInstPermission]
+
+        # Llama al método base para obtener los permisos
+        return super().get_permissions()
 
     def put(self, request, uuid):
         try:
@@ -94,11 +110,13 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            process_data = process_nested_form_data(request.data)
+            data = request.data.copy()
+            # si no tenemos password eliminams el campo
+            # si es update serializer indicara que dicho campo no debe ser vacio
+            if data.get("usuario[password]") in [None, ""]:
+                data.pop("usuario[password]")
 
-            # Verifica si el valor NO es  None o vacio
-            # if data.get("usuario[password]"):
-              #  usuario_data["password"] = data.get("usuario[password]")
+            process_data = process_nested_form_data(data)
 
             # Ya no necesitamos verificar el is_status, se verifico arriba
             usuario_personal_inst = PersonalInstitucional.objects.get(
@@ -166,5 +184,3 @@ class UsuarioPersonalInstUpdateDeleteView(APIView):
                 {"payload": {}, "detail": str(e), "api_status": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-

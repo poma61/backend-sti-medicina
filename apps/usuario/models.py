@@ -17,6 +17,7 @@ def user_profile_directory_path(instance, filename):
 
 
 class Permiso(models.Model):
+    module = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     is_type = models.CharField(max_length=100)
     is_type_content = models.CharField(max_length=100)
@@ -43,7 +44,7 @@ class Usuario(models.Model):
     )
     # Campo para almacenar la última fecha de inicio de sesión
     last_login = models.DateTimeField(null=True, blank=True)
-    permiso = models.ManyToManyField(Permiso, related_name="usuario", blank=True)
+    permisos = models.ManyToManyField(Permiso, related_name="usuario", blank=True)
 
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)

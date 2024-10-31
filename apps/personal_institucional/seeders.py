@@ -1,27 +1,32 @@
 # Se debe instalar pip install djando-seeding
-# y ejecutar codigo python3 manage.py
+# y ejecutar codigo => python3 manage.py seed
 from django_seeding import seeders
 from django_seeding.seeder_registry import SeederRegistry
 
-from apps.usuario.models import Usuario
+from apps.usuario.models import Usuario, Permiso
 from apps.personal_institucional.models import PersonalInstitucional
 
 
 @SeederRegistry.register
-class UsuarioSeeder(seeders.ModelSeeder):
-    id = "UsuarioSeeder2"
-    # priority = 6
-    model = Usuario
+class UsuarioSeeder(seeders.Seeder):
+    id = "UsuarioSeeder"
+
+    # Crear los usuarios
     data = [
         {
-            "id": 2,
-            "user": "admin1",
+            "id": 1,
+            "user": "admin",
             "email": "admin@gmail.com",
             "is_active": True,
-            "password": "pbkdf2_sha256$870000$vDxLFnvChTmBHqS286ulQs$c/Mvco/7vyhuWbzlNU/MLVx+jAnANq6t1ifwkMtO/ZU=",  # 1234
-            "user_type": "estudiante",
+            "password": "pbkdf2_sha256$870000$vDxLFnvChTmBHqS286ulQs$c/Mvco/7vyhuWbzlNU/MLVx+jAnANq6t1ifwkMtO/ZU=",  # Contraseña: 1234
+            "user_type": "administrativo",
         },
     ]
+
+    def seed(self):
+        user = Usuario.objects.create(**self.data[0])
+        permisos = Permiso.objects.all()
+        user.permisos.set(permisos)
 
 
 @SeederRegistry.register
@@ -31,6 +36,7 @@ class PersonalInstitucionalSeeder(seeders.ModelSeeder):
     model = PersonalInstitucional
     data = [
         {
+            "usuario_id": 1,
             "nombres": "Carlos",
             "apellido_paterno": "Perez",
             "apellido_materno": "Mamani",
@@ -42,6 +48,7 @@ class PersonalInstitucionalSeeder(seeders.ModelSeeder):
             "direccion": " La Paz , Bolivia",
             "cargo": "Docente",
             "grado_academico": "Doctor",
-            "usuario_id": 2,
         },
     ]
+
+

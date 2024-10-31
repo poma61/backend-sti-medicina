@@ -15,6 +15,7 @@ class PersonalInstitucional(models.Model):
     apellido_paterno = models.CharField(max_length=100)
     apellido_materno = models.CharField(max_length=100)
     ci = models.CharField(max_length=100)
+    ci_complemento = models.CharField(max_length=20, blank=True, null=True)
     ci_expedido = models.CharField(max_length=10)
     genero = models.CharField(max_length=20)
     fecha_nacimiento = models.DateField()

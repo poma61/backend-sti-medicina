@@ -11,15 +11,26 @@ from .utils import process_nested_form_data
 from .serializers import UsuarioEstudianteSerializer
 
 from apps.usuario.permissions import (
+    ViewEstudentPermission,
     CreateEstudentPermission,
     UpdateEstudentPermission,
     DeleteEstudentPermission,
 )
 
+
 class UsuarioEstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated, CreateEstudentPermission]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
+
+    def get_permissions(self):
+        # Aplicar permisos según el método de la solicitud
+        if self.request.method == "GET":
+            self.permission_classes = [ViewEstudentPermission]
+        elif self.request.method == "POST":
+            self.permission_classes = [CreateEstudentPermission]
+        
+        return super().get_permissions()
 
     def get(self, request):
         try:

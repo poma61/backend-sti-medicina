@@ -5,11 +5,12 @@ import os
 
 
 def user_profile_directory_path(instance, filename):
-    # Limpia el nombre del archivo para evitar path traversal, conserva el nombre del archivo
+    # Limpia el nombre del archivo para evitar path traversal, conserva el nombre del archivo 
+    # tambien tiene el tipo de archivo
     filename = os.path.basename(filename)
 
     unique_filename = (
-        f"{get_random_string(length=10)}_{get_random_string(length=10)}_{filename}"
+        f"{get_random_string(length=10)}_{instance.user}_{filename}"
     )
     user_directory = "usuario/"
     # Devuelve la ruta donde se guardará la nueva imagen

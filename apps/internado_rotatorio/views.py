@@ -13,11 +13,12 @@ from openai import OpenAI
 from django.http import StreamingHttpResponse
 
 import environ
+
 env = environ.Env()
 environ.Env.read_env()
 
 
-class ListCreateTemaView(APIView):
+class ListTemaView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -41,10 +42,17 @@ class ListCreateTemaView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
+class CreateTemaView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     # Este metodo es para crear, pero se esta en uso
     def post(self, request):
         try:
-            serializer = TemaSerializer(data=request.data)
+             # convertimos en diccionario, por si pasamos multipart el is_status no se autoagrega
+            data = request.data.dict()
+            serializer = TemaSerializer(data=data)
 
             if serializer.is_valid():
                 serializer.save()

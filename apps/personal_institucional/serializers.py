@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import PersonalInstitucional
 from apps.usuario.serializers import UsuarioSerializer
-from .validators  import custom_number_validator
+from .validators  import custom_number_validator, custom_ci_complemento_validator
 from apps.usuario.models import Permiso
 
 class UsuarioPersonalInstSerializer(serializers.ModelSerializer):
@@ -19,6 +19,8 @@ class UsuarioPersonalInstSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "is_status": {"write_only": True},
             "numero_contacto": {"validators": [custom_number_validator]},
+            "ci": {"validators": [custom_number_validator]},
+            "ci_complemento": {"validators": [custom_ci_complemento_validator]},
         }
 
     def to_internal_value(self, data):

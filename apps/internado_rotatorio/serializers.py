@@ -23,7 +23,7 @@ class TemaSerializer(serializers.ModelSerializer):
             # write_only => El campo NO se devuelve en las respuestas
             "is_status": {"write_only": True},
         }
-
+    
 
 class AreaAndTemaSerializer(serializers.ModelSerializer):
     area = AreaSerializer()

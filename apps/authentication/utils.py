@@ -15,7 +15,7 @@ class Auth:
         return check_password(raw_password, hashed_password)
     
     @staticmethod
-    def user(request_user):
-        return request_user.user
+    def user(request):
+        return request.user
         
 

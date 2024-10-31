@@ -3,7 +3,7 @@ from .models import Estudiante
 from apps.usuario.serializers import UsuarioSerializer
 from apps.usuario.models import Usuario
 from django.db.models import QuerySet
-from .validators import custom_number_validator
+from .validators import custom_number_validator, custom_ci_complemento_validator
 
 
 class UsuarioEstudianteSerializer(serializers.ModelSerializer):
@@ -23,6 +23,8 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
             "is_status": {"write_only": True},
             "numero_contacto": {"validators": [custom_number_validator]},
             "matricula_univ": {"validators": [custom_number_validator]},
+            "ci": {"validators": [custom_number_validator]},
+            "ci_complemento": {"validators": [custom_ci_complemento_validator]},
         }
         
 

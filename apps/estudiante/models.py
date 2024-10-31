@@ -9,6 +9,7 @@ class Estudiante(models.Model):
     apellido_paterno = models.CharField(max_length=100)
     apellido_materno = models.CharField(max_length=100)
     ci = models.CharField(max_length=100)
+    ci_complemento = models.CharField(max_length=20, blank=True, null=True)
     ci_expedido = models.CharField(max_length=20)
     genero = models.CharField(max_length=20)
     fecha_nacimiento= models.DateField()
@@ -23,6 +24,4 @@ class Estudiante(models.Model):
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-    
-
     

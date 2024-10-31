@@ -29,3 +29,4 @@ def create_chat_completion(
     )
 
     return chat_completion
+

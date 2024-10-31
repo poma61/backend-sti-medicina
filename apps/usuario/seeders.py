@@ -7,10 +7,18 @@ from .models import Permiso
 
 @SeederRegistry.register
 class PermisoSeeder(seeders.ModelSeeder):
-    id = "PermisoSeeder005"
+    id = "PermisoSeeder"
     model = Permiso
     data = [
         # permisos estudiantes
+        {
+            "module": "Estudiante",
+            "name": "Visualizar estudiantes",
+            "is_type": "data",
+            "is_type_content": "students",
+            "code": "data_view_students",
+        },
+
         {
             "module": "Estudiante",
             "name": "Registrar estudiante",
@@ -33,6 +41,13 @@ class PermisoSeeder(seeders.ModelSeeder):
             "code": "data_delete_students",
         },
         # permisos personal
+         {
+            "module": "Personal institucional",
+            "name": "Visualizar personal",
+            "is_type": "data",
+            "is_type_content": "institutional_staff",
+            "code": "data_view_institutional_staff",
+        },
         {
             "module": "Personal institucional",
             "name": "Registrar personal",

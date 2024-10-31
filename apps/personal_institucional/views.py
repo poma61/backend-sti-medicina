@@ -10,6 +10,7 @@ from .models import PersonalInstitucional
 
 from .utils import process_nested_form_data
 from apps.usuario.permissions import (
+    ViewPersonalInstPermission,
     CreatePersonalInstPermission,
     UpdatePersonalInstPermission,
     DeletePersonalInstPermission,
@@ -18,8 +19,18 @@ from apps.usuario.permissions import (
 
 class UsuarioPersonalInstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated, CreatePersonalInstPermission]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
+
+    def get_permissions(self):
+        # Aplicar permisos según el método de la solicitud
+        if self.request.method == "GET":
+            self.permission_classes = [ViewPersonalInstPermission]
+        elif self.request.method == "POST":
+            self.permission_classes = [CreatePersonalInstPermission]
+
+        # Llama al método base para obtener los permisos
+        return super().get_permissions()
 
     def get(self, request):
         try:

@@ -14,7 +14,8 @@ class ListPermiso(APIView):
 
     def get(self, request):
         try:
-            permisos = Permiso.objects.all()
+            # Ordenar de forma ascentende
+            permisos = Permiso.objects.all().order_by('id')
             serializer = PermisoSerializer(permisos, many=True)
 
             return Response(

@@ -9,17 +9,18 @@ import datetime
 from apps.estudiante.models import Estudiante
 from apps.personal_institucional.models import PersonalInstitucional
 from apps.usuario.models import Usuario
+from apps.usuario.serializers import PermisoSerializer
 
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
-from .jwt_authentication import CustomJWTAuthentication
-
-from .serializers import AuthUsuarioSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken
-import jwt
-from django.conf import settings
 
+from .jwt_authentication import CustomJWTAuthentication
+from .serializers import AuthUsuarioSerializer
+import jwt
+
+from django.conf import settings
 
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
@@ -31,7 +32,9 @@ class CustomTokenRefreshView(TokenRefreshView):
             access_token = get_access_token.data["access"]
 
             # Decodificar el token para obtener el campo de expiración
-            decoded_access_token = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+            decoded_access_token = jwt.decode(
+                access_token, settings.SECRET_KEY, algorithms=["HS256"]
+            )
             access_token_expiration = decoded_access_token["exp"]
 
             # Personalizamos la respuesta
@@ -57,6 +60,7 @@ class CustomTokenRefreshView(TokenRefreshView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
 class LoginView(APIView):
     permission_classes = [AllowAny]  # Permitir el acceso a todos
 
@@ -68,7 +72,8 @@ class LoginView(APIView):
 
             # Verificar si el usuario existe
             exists_usuario = Usuario.objects.filter(
-                user=request_user, is_status=True,
+                user=request_user,
+                is_status=True,
             ).exists()
             if not exists_usuario:
                 return Response(
@@ -81,7 +86,7 @@ class LoginView(APIView):
 
             # Verificar si esta deshabilitado
             exists_usuario = Usuario.objects.filter(
-                 user=request_user, is_active=False
+                user=request_user, is_active=False
             ).exists()
             if exists_usuario:
                 return Response(
@@ -103,17 +108,21 @@ class LoginView(APIView):
                 # Generar tokens JWT
                 refresh = RefreshToken.for_user(usuario)
                 access_token = refresh.access_token
-                
+
                 # tiempos de expiración
-                access_token_expiration = access_token["exp"]  # Expiración del access token
-                refresh_token_expiration = refresh["exp"]  # Expiración del refresh token
+                access_token_expiration = access_token[
+                    "exp"
+                ]  # Expiración del access token
+                refresh_token_expiration = refresh[
+                    "exp"
+                ]  # Expiración del refresh token
 
                 return Response(
                     {
                         "access_token": str(access_token),
                         "refresh_token": str(refresh),
-                        "access_token_expiration": access_token_expiration , # Tiempo  unix en segundos desde 1970,
-                        "refresh_token_expiration":refresh_token_expiration,
+                        "access_token_expiration": access_token_expiration,  # Tiempo  unix en segundos desde 1970,
+                        "refresh_token_expiration": refresh_token_expiration,
                         "detail": "OK",
                         "api_status": True,
                     },
@@ -136,16 +145,18 @@ class LoginView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
 class LogoutView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         try:
             refresh_token = request.data.get("refresh_token")
 
             # Revocar token
             RefreshToken(refresh_token).blacklist()
-            
+
             return Response(
                 {
                     "detail": "Logout exitoso.",
@@ -155,12 +166,12 @@ class LogoutView(APIView):
             )
         except Exception as es:
             return Response(
-                    {
-                        "detail": str(e),
-                        "api_status": False,
-                    },
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+                {
+                    "detail": str(e),
+                    "api_status": False,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class UserAuthDataView(APIView):
@@ -186,6 +197,7 @@ class UserAuthDataView(APIView):
                 {
                     "payload": {
                         "user": estudiante_or_personal_inst.usuario.user,
+                        "user_type": estudiante_or_personal_inst.usuario.user_type,
                         "nombres": estudiante_or_personal_inst.nombres,
                         "apellido_paterno": estudiante_or_personal_inst.apellido_paterno,
                         "apellido_materno": estudiante_or_personal_inst.apellido_materno,
@@ -207,6 +219,38 @@ class UserAuthDataView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
+class UserPermission(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            user = Auth.user(request)
+            permisos = user.permisos.all()
+
+            serializer = PermisoSerializer(permisos, many=True)
+            # Extraemos solo los códigos de cada permiso en una lista
+            permisos_codes = [permiso["code"] for permiso in serializer.data]
+
+            return Response(
+                {
+                    "payload": permisos_codes,
+                    "detail": "OK",
+                    "api_status": False,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            return Response(
+                {
+                    "payload": [],
+                    "detail": str(e),
+                    "api_status": False,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 class UserUpdateView(APIView):
     # CustomJWTAuthentication verifica si el usuairo fue eliminado (is_status)

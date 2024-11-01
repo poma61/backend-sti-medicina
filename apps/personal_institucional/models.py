@@ -7,7 +7,6 @@ class PersonalInstitucional(models.Model):
     usuario = models.OneToOneField(
         Usuario,
         on_delete=models.CASCADE,
-        primary_key=True,
         related_name="personal_institucional",
     )
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
@@ -29,3 +28,5 @@ class PersonalInstitucional(models.Model):
     is_status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+

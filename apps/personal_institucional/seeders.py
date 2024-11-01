@@ -14,7 +14,6 @@ class UsuarioSeeder(seeders.Seeder):
     # Crear los usuarios
     data = [
         {
-            "id": 1,
             "user": "admin",
             "email": "admin@gmail.com",
             "is_active": True,

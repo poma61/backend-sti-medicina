@@ -1,9 +1,10 @@
 from apps.usuario.models import Usuario
 from django.db import models
 import uuid
+from apps.internado_rotatorio.models import Tema 
 
 class Estudiante(models.Model):
-    usuario = models.OneToOneField(Usuario, primary_key=True, on_delete=models.CASCADE, related_name='estudiante')    
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='estudiante')    
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     nombres = models.CharField(max_length=100)
     apellido_paterno = models.CharField(max_length=100)
@@ -25,3 +26,25 @@ class Estudiante(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     
+class ProgresoEstudio(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    progress = models.DecimalField(max_digits=5, decimal_places=2)
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name="progreso_estudio")
+    tema = models.ForeignKey(Tema,on_delete=models.CASCADE, related_name="progreso_estudio" )
+    ult_actualizacion = models.DateTimeField(auto_now=True)
+    tiempo_est = models.TimeField()
+    is_status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+class ActividadCuestionario(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    progreso_estudio = models.ForeignKey(ProgresoEstudio, on_delete=models.CASCADE, related_name="actividad_cuestionario")
+    pregunta = models.CharField(max_length=300)
+    respuesta = models.CharField(max_length=300)
+    evaluation_of_ai = models.TextField()
+    is_status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+ 

@@ -22,6 +22,7 @@ import jwt
 
 from django.conf import settings
 
+
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
@@ -198,15 +199,15 @@ class UserAuthDataView(APIView):
                     "payload": {
                         "user": estudiante_or_personal_inst.usuario.user,
                         "user_type": estudiante_or_personal_inst.usuario.user_type,
+                        "email": estudiante_or_personal_inst.usuario.email,
+                        "picture": estudiante_or_personal_inst.usuario.picture.url,
                         "nombres": estudiante_or_personal_inst.nombres,
                         "apellido_paterno": estudiante_or_personal_inst.apellido_paterno,
                         "apellido_materno": estudiante_or_personal_inst.apellido_materno,
                         "ci": estudiante_or_personal_inst.ci,
                         "ci_expedido": estudiante_or_personal_inst.ci_expedido,
                         "numero_contacto": estudiante_or_personal_inst.numero_contacto,
-                        "email": estudiante_or_personal_inst.usuario.email,
                         "direccion": estudiante_or_personal_inst.direccion,
-                        "picture": estudiante_or_personal_inst.usuario.picture.url,
                     },
                     "detail": "OK",
                     "api_status": True,
@@ -251,6 +252,7 @@ class UserPermission(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
 
 class UserUpdateView(APIView):
     # CustomJWTAuthentication verifica si el usuairo fue eliminado (is_status)

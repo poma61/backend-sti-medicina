@@ -1,7 +1,6 @@
 from django.db import models
 import uuid
 from django.utils.crypto import get_random_string
-from apps.estudiante.models import Estudiante
 import os
 
 def pdf_directory_path(instance, filename):

@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from .models import Estudiante
+from .models import Estudiante, ProgresoEstudio, ActividadCuestionario
 from apps.usuario.serializers import UsuarioSerializer
 from apps.usuario.models import Usuario
 from django.db.models import QuerySet
 from .validators import custom_number_validator, custom_ci_complemento_validator
+from apps.internado_rotatorio.serializers import TemaSerializer
 
 
 class UsuarioEstudianteSerializer(serializers.ModelSerializer):
@@ -19,14 +20,13 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
             "uuid",
         )
         extra_kwargs = {
-            #write_only => El campo NO se devuelve en las respuestas
+            # write_only => El campo NO se devuelve en las respuestas
             "is_status": {"write_only": True},
             "numero_contacto": {"validators": [custom_number_validator]},
             "matricula_univ": {"validators": [custom_number_validator]},
             "ci": {"validators": [custom_number_validator]},
             "ci_complemento": {"validators": [custom_ci_complemento_validator]},
         }
-        
 
     # # Aseguramos que UsuarioSerializer es una instancia al momento de actualizar datos
     # def __init__(self, *args, **kwargs):
@@ -81,3 +81,35 @@ class UsuarioEstudianteSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class ProgresoEstudioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProgresoEstudio
+        fields = "__all__"
+        # write_only_fields= ("is_status", )
+        read_only_fields = (
+            "created_at",
+        )
+        
+class ActividadCuestionarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActividadCuestionario
+        fields = "__all__"
+        # campos que no se devuelven en las respuestas
+        write_only_fields= ("is_status", )
+        read_only_fields = (
+            "created_at",
+        )
+
+class ProgresoEstudioTemaSerializer(serializers.ModelSerializer):
+    tema = TemaSerializer(read_only=True)
+    class Meta:
+        model = ProgresoEstudio
+        fields = "__all__"
+         # campos que no se devuelven en las respuestas
+        write_only_fields= ("is_status", )
+        # Campos de solo lectura
+        read_only_fields = (
+            "created_at",
+        )

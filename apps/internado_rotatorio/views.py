@@ -24,7 +24,6 @@ class ListTemaView(APIView):
 
     def get(self, request, area):
         try:
-            print(request.data)
             temas = Tema.objects.filter(is_status=True, area__name=area)
             serializer = AreaAndTemaSerializer(temas, many=True)
 

@@ -5,10 +5,19 @@ from rest_framework.permissions import IsAuthenticated
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
 from rest_framework.parsers import MultiPartParser, JSONParser
 
-from .models import Estudiante
+from apps.authentication.utils import Auth
+
+from .models import Estudiante, ProgresoEstudio, ActividadCuestionario
 from .utils import process_nested_form_data
 
-from .serializers import UsuarioEstudianteSerializer
+from .serializers import (
+    UsuarioEstudianteSerializer,
+    ProgresoEstudioSerializer,
+    ActividadCuestionarioSerializer,
+    ProgresoEstudioTemaSerializer,
+)
+
+from datetime import datetime, time
 
 from apps.usuario.permissions import (
     ViewEstudentPermission,
@@ -29,7 +38,7 @@ class UsuarioEstListCreateView(APIView):
             self.permission_classes = [ViewEstudentPermission]
         elif self.request.method == "POST":
             self.permission_classes = [CreateEstudentPermission]
-        
+
         return super().get_permissions()
 
     def get(self, request):
@@ -195,3 +204,132 @@ class UsuarioEstUpdateDeleteView(APIView):
                 {"detail": str(e), "api_status": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class ProgresoEstudioListCreateOrUpdateView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user_estudiante = Auth.user(request)
+
+            progreso_estudio = ProgresoEstudio.objects.filter(
+                estudiante__id=user_estudiante.estudiante.id
+            )
+            serializer = ProgresoEstudioTemaSerializer(progreso_estudio, many=True)
+
+            return Response(
+                {"payload": serializer.data, "detail": "OK", "api_status": True},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            return Response(
+                {"payload": [], "detail": str(e), "api_status": False},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def post(self, request):
+        try:
+            # Obtenemos estudiante autenticado
+            user_estudiante = Auth.user(request)
+            data = request.data.copy()
+
+            data["estudiante"] = user_estudiante.estudiante.id
+
+            # verificamos si ya existe el progreso
+            exists_progreso_estudio = ProgresoEstudio.objects.filter(
+                estudiante__id=user_estudiante.estudiante.id,
+                tema__id=data.get("tema"),
+            ).exists()
+
+            if exists_progreso_estudio:
+                # si ya existe el progreso de estudio hacemos un update
+                # pero antes verificamos valores anteriores
+                progreso_estudio = ProgresoEstudio.objects.get(
+                    estudiante__id=user_estudiante.estudiante.id,
+                    tema__id=data.get("tema"),
+                )
+
+                old_time = self.parsed_time(progreso_estudio.tiempo_est)
+
+                new_time = self.parsed_time(data.get("tiempo_est"))
+
+                progress = [0.1, 0.3, 0.5, 0.7, 0.9]
+                # el progress 0.9 solo se aplica si termina el cuestionario (actividad)
+                tiempos = [
+                    self.parsed_time("00:30:00"),
+                    self.parsed_time("01:00:00"),
+                    self.parsed_time("01:30:00"),
+                    self.parsed_time("02:00:00"),
+                ]
+
+                if new_time > tiempos[0]:
+                    data["progress"] = progress[0]
+                elif new_time > tiempos[1]:
+                    data["progress"] = progress[1]
+                elif new_time > tiempos[2]:
+                    data["progress"] = progress[2]
+                elif new_time > tiempos[3]:
+                    data["progress"] = progress[3]
+
+                serializer = ProgresoEstudioSerializer(
+                    instance=progreso_estudio, data=data, partial=True
+                )
+
+                if serializer.is_valid() and new_time > old_time:
+
+                    serializer.save()
+                    return Response(
+                        {
+                            "payload": serializer.data,
+                            "detail": "OK",
+                            "api_status": True,
+                        },
+                        status=status.HTTP_201_CREATED,
+                    )
+                else:
+                    return Response(
+                        {
+                            "serializer_errors": serializer.errors,
+                            "detail": "Tiempo nuevo de estudio no superado.",
+                            "api_status": True,
+                        },
+                        status=status.HTTP_206_PARTIAL_CONTENT,
+                    )
+
+            else:
+                data["progress"] = 0.05
+                # si no existe un progreso de estudio hacemos un create
+                serializer = ProgresoEstudioSerializer(data=data)
+
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(
+                        {
+                            "payload": serializer.data,
+                            "detail": "OK",
+                            "api_status": True,
+                        },
+                        status=status.HTTP_201_CREATED,
+                    )
+                else:
+                    return Response(
+                        {
+                            "payload": {},
+                            "detail": "Verificar los campos.",
+                            "serializer_errors": serializer.errors,
+                            "api_status": False,
+                        },
+                        status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    )
+
+        except Exception as e:
+            return Response(
+                {"payload": {}, "detail": str(e), "api_status": False},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def parsed_time(self, time_str):
+        return datetime.strptime(str(time_str), "%H:%M:%S").time()

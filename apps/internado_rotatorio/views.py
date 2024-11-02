@@ -49,7 +49,7 @@ class CreateTemaView(APIView):
     # Este metodo es para crear, pero se esta en uso
     def post(self, request):
         try:
-             # convertimos en diccionario, por si pasamos multipart el is_status no se autoagrega
+            # convertimos en diccionario, por si pasamos multipart el is_status no se autoagrega
             data = request.data.dict()
             serializer = TemaSerializer(data=data)
 
@@ -194,7 +194,7 @@ class AIEvaluateQuestions(APIView):
     def post(self, request):
         try:
             request_tema = request.data.get("tema")
-            request_questions = request.data.get("questions")
+            request_questionary = request.data.get("questionary")
             user_auth = Auth.user(request)
 
             # verificamos si existe el tema
@@ -212,7 +212,7 @@ class AIEvaluateQuestions(APIView):
             tema = Tema.objects.get(uuid=request_tema.get("uuid"))
             # Obtener pregunta  respuesta
             text_output = []
-            for index, row in enumerate(request_questions, start=1):
+            for row in request_questionary:
                 text_output.append(f"**{row['pregunta']}\nRespuesta:{row['respuesta']}")
 
             # Unir todo en un texto plano con saltos de linea para cada pregunta y respuesta

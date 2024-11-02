@@ -7,13 +7,13 @@ from rest_framework.parsers import MultiPartParser, JSONParser
 
 from apps.authentication.utils import Auth
 
-from .models import Estudiante, ProgresoEstudio, ActividadCuestionario
+from .models import Estudiante, ProgresoEstudio, ResultadoCuestionarioTema
 from .utils import process_nested_form_data
 
 from .serializers import (
     UsuarioEstudianteSerializer,
     ProgresoEstudioSerializer,
-    ActividadCuestionarioSerializer,
+    ResultadoCuestionarioTemaSerializer,
     ProgresoEstudioTemaSerializer,
 )
 
@@ -213,7 +213,6 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
     def get(self, request):
         try:
             user_estudiante = Auth.user(request)
-
             progreso_estudio = ProgresoEstudio.objects.filter(
                 estudiante__id=user_estudiante.estudiante.id
             )
@@ -223,7 +222,6 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                 {"payload": serializer.data, "detail": "OK", "api_status": True},
                 status=status.HTTP_200_OK,
             )
-
         except Exception as e:
             return Response(
                 {"payload": [], "detail": str(e), "api_status": False},
@@ -235,7 +233,6 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
             # Obtenemos estudiante autenticado
             user_estudiante = Auth.user(request)
             data = request.data.copy()
-
             data["estudiante"] = user_estudiante.estudiante.id
 
             # verificamos si ya existe el progreso
@@ -251,17 +248,28 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                     estudiante__id=user_estudiante.estudiante.id,
                     tema__id=data.get("tema"),
                 )
-
                 old_time = self.parsed_time(progreso_estudio.tiempo_est)
-
                 new_time = self.parsed_time(data.get("tiempo_est"))
 
-                progress = [0.1, 0.3, 0.5, 0.7, 0.9]
+                progress = [
+                    0.1,
+                    0.2,
+                    0.3,
+                    0.4,
+                    0.5,
+                    0.6,
+                    0.7,
+                    0.8,
+                ]
                 # el progress 0.9 solo se aplica si termina el cuestionario (actividad)
                 tiempos = [
+                    self.parsed_time("00:10:00"),
+                    self.parsed_time("00:20:00"),
                     self.parsed_time("00:30:00"),
+                    self.parsed_time("00:40:00"),
                     self.parsed_time("01:00:00"),
-                    self.parsed_time("01:30:00"),
+                    self.parsed_time("01:20:00"),
+                    self.parsed_time("01:40:00"),
                     self.parsed_time("02:00:00"),
                 ]
 
@@ -273,44 +281,78 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                     data["progress"] = progress[2]
                 elif new_time > tiempos[3]:
                     data["progress"] = progress[3]
+                elif new_time > tiempos[4]:
+                    data["progress"] = progress[4]
+                elif new_time > tiempos[5]:
+                    data["progress"] = progress[5]
+                elif new_time > tiempos[6]:
+                    data["progress"] = progress[6]
+                elif new_time > tiempos[7]:
+                    data["progress"] = progress[7]
 
-                serializer = ProgresoEstudioSerializer(
-                    instance=progreso_estudio, data=data, partial=True
-                )
+                # Si el estudiante esta siendo evaluado completamos el prorgeso al 100% (1.00)
+                if data.get("finished_tema_and_question"):
+                    data["progress"] = 1.00
+                    serializer = ProgresoEstudioSerializer(
+                        instance=progreso_estudio, data=data, partial=True
+                    )
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
 
-                if serializer.is_valid() and new_time > old_time:
+                    self.save_tema_is_evualuate_question(
+                        data.get("questionary"),
+                        progreso_estudio.id,
+                        data.get("evaluation_of_ai"),
+                    )
 
+                    return Response(
+                        {
+                            "payload": serializer.data,
+                            "detail": "Estudiante termino el tema completo y el cuestionario",
+                            "api_status": True,
+                            "type": "update",
+                        },
+                        status=status.HTTP_201_CREATED,
+                    )
+                # caso contrario el estudinate sigue estudiando (leendo el tema)
+                # solo actualizamos si new_time(tiempo actual obtenido del frontend) es mayor que
+                #  old_time (ultimo tiempo guardado en la bd)
+                elif new_time > old_time:
+                    serializer = ProgresoEstudioSerializer(
+                        instance=progreso_estudio, data=data, partial=True
+                    )
+                    serializer.is_valid(raise_exception=True)
                     serializer.save()
                     return Response(
                         {
                             "payload": serializer.data,
-                            "detail": "OK",
+                            "detail": "Actualizando, estudiante sigue estudiando",
                             "api_status": True,
+                            "type": "update",
                         },
                         status=status.HTTP_201_CREATED,
                     )
                 else:
                     return Response(
                         {
-                            "serializer_errors": serializer.errors,
                             "detail": "Tiempo nuevo de estudio no superado.",
                             "api_status": True,
+                            "type": "update",
                         },
                         status=status.HTTP_206_PARTIAL_CONTENT,
                     )
-
             else:
-                data["progress"] = 0.05
+                data["progress"] = 0.05  # inizializamos el progreso en 5% (0.05)
                 # si no existe un progreso de estudio hacemos un create
                 serializer = ProgresoEstudioSerializer(data=data)
-
                 if serializer.is_valid():
                     serializer.save()
                     return Response(
                         {
                             "payload": serializer.data,
-                            "detail": "OK",
+                            "detail": "Progreso de estudio creado.",
                             "api_status": True,
+                            "type": "create",
                         },
                         status=status.HTTP_201_CREATED,
                     )
@@ -321,10 +363,10 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                             "detail": "Verificar los campos.",
                             "serializer_errors": serializer.errors,
                             "api_status": False,
+                            "type": "create",
                         },
                         status=status.HTTP_422_UNPROCESSABLE_ENTITY,
                     )
-
         except Exception as e:
             return Response(
                 {"payload": {}, "detail": str(e), "api_status": False},
@@ -333,3 +375,24 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
 
     def parsed_time(self, time_str):
         return datetime.strptime(str(time_str), "%H:%M:%S").time()
+
+    # Una vez terminado el estudio guardamos el cuestionario
+    def save_tema_is_evualuate_question(self,
+        questionary, progreso_estudio_id, evaluation_of_ai
+    ):
+    # hasta aqui funciona 
+        for row in questionary:
+            is_data = {
+                "pregunta": row["pregunta"],
+                "respuesta": row["respuesta"],
+                "progreso_estudio": progreso_estudio_id,
+                "cuestionario_evaluado_of_ai":{
+                    "evaluate": evaluation_of_ai
+                }
+            }
+            serializer = ResultadoCuestionarioTemaSerializer(data=is_data)
+            if serializer.is_valid():
+                serializer.save()
+                return serializer.data
+            else:
+                return serializer.errors    

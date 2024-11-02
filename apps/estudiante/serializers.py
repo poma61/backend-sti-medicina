@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import Estudiante, ProgresoEstudio, ActividadCuestionario
+from .models import (
+    Estudiante,
+    ProgresoEstudio,
+    ResultadoCuestionarioTema,
+    CuestionarioEvaluadoOfAI,
+)
 from apps.usuario.serializers import UsuarioSerializer
 from apps.usuario.models import Usuario
 from django.db.models import QuerySet
@@ -88,28 +93,38 @@ class ProgresoEstudioSerializer(serializers.ModelSerializer):
         model = ProgresoEstudio
         fields = "__all__"
         # write_only_fields= ("is_status", )
-        read_only_fields = (
-            "created_at",
-        )
-        
-class ActividadCuestionarioSerializer(serializers.ModelSerializer):
+        read_only_fields = ("created_at",)
+
+
+class CuestionarioEvaluadoOfAISerializer(serializers.ModelSerializer):
     class Meta:
-        model = ActividadCuestionario
+        model = CuestionarioEvaluadoOfAI
         fields = "__all__"
         # campos que no se devuelven en las respuestas
-        write_only_fields= ("is_status", )
-        read_only_fields = (
-            "created_at",
-        )
+        write_only_fields = ("is_status",)
+        # campos de solo lectura
+        read_only_fields = ("created_at",)
+
+
+class ResultadoCuestionarioTemaSerializer(serializers.ModelSerializer):
+    # write_only=True => no se deuelven en las respuestas => cuestionario_evaluado_of_ai
+    cuestionario_evaluado_of_ai = CuestionarioEvaluadoOfAISerializer(write_only=True)
+
+    class Meta:
+        model = ResultadoCuestionarioTema
+        fields = "__all__"
+        # campos que no se devuelven en las respuestas
+        write_only_fields = ("is_status",)
+        read_only_fields = ("created_at",)
+
 
 class ProgresoEstudioTemaSerializer(serializers.ModelSerializer):
     tema = TemaSerializer(read_only=True)
+
     class Meta:
         model = ProgresoEstudio
         fields = "__all__"
-         # campos que no se devuelven en las respuestas
-        write_only_fields= ("is_status", )
+        # campos que no se devuelven en las respuestas
+        write_only_fields = ("is_status",)
         # Campos de solo lectura
-        read_only_fields = (
-            "created_at",
-        )
+        read_only_fields = ("created_at",)

@@ -1,4 +1,5 @@
-def get_question(tema):
+def get_questions(generate_questions):
+    tema = generate_questions["tema"]
     return [
         {
             "role": "system",
@@ -17,7 +18,11 @@ def get_question(tema):
     ]
 
 
-def get_evaluation(user_auth, tema, question):
+def get_evaluation_questions(evaluation_questions):
+    user_auth = evaluation_questions["user_auth"]
+    tema = evaluation_questions["tema"]
+    questions = evaluation_questions["questions"]
+
     return [
         {
             "role": "system",
@@ -35,7 +40,7 @@ def get_evaluation(user_auth, tema, question):
                     Tema: {tema.short_title}. 
                      Introducción:{tema.contenido}.
                      cuestionario:
-                     {question}
+                     {questions}
                     """,
         },
     ]

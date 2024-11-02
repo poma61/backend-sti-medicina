@@ -1,19 +1,19 @@
 from openai import OpenAI as WrapperAI
-from .setup_ai import get_evaluation, get_question
+from .setup_ai import get_evaluation_questions, get_questions
 
 
 def create_chat_completion(
-    base_url, access_token, tema=None, user_auth=None, question=None
+    base_url, access_token, generate_questions=None, evaluation_questions=None
 ):
     wrapper = WrapperAI(
         base_url=base_url,
         api_key=access_token,
     )
     #  si user_auth es None significa que es generacion de cuestionario
-    if user_auth is None:
-        is_message = get_question(tema)
+    if generate_questions is not None:
+        is_message = get_questions(generate_questions)
     else:
-        is_message = get_evaluation(user_auth, tema, question)
+        is_message = get_evaluation_questions(evaluation_questions)
 
     # Crear el chat_completion con streaming habilitado
     chat_completion = wrapper.chat.completions.create(
@@ -29,4 +29,3 @@ def create_chat_completion(
     )
 
     return chat_completion
-

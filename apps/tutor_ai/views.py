@@ -21,7 +21,6 @@ class TutorAIGenerateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-
         try:
 
             user_message = request.data.get("user_message", None)

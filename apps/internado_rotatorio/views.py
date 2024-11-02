@@ -138,15 +138,13 @@ class AIGenerateQuestionsView(APIView):
             # verificamos si existe el tema
             exists_tema = Tema.objects.filter(uuid=request.data.get("uuid")).exists()
             if not exists_tema:
-                return Response(
-                    {
-                        "api_status": False,
-                        "detail": "No se encontro ningun tema.",
-                    },
-                    status=status.HTTP_404_NOT_FOUND,
+                return StreamingHttpResponse(
+                    {"No existe el tema."},
+                    status=404,
                 )
             # obtener el tema
             tema = Tema.objects.get(uuid=request.data.get("uuid"))
+            generate_questions = {"tema": tema}
 
             base_url = env("AI_BASE_URL")
             access_token = env("AI_ACCESS_TOKEN")
@@ -154,7 +152,7 @@ class AIGenerateQuestionsView(APIView):
             chat_completion = create_chat_completion(
                 base_url=base_url,
                 access_token=access_token,
-                tema=tema,
+                generate_questions=generate_questions,
             )
 
             # Función generadora para streaming
@@ -197,15 +195,18 @@ class AIEvaluateQuestions(APIView):
             request_questionary = request.data.get("questionary")
             user_auth = Auth.user(request)
 
+            if user_auth.user_type != "estudiante":
+                return StreamingHttpResponse(
+                    {"El usuario no es un estudiante."},
+                    status=403,
+                ) 
+
             # verificamos si existe el tema
             exists_tema = Tema.objects.filter(uuid=request_tema.get("uuid")).exists()
             if not exists_tema:
-                return Response(
-                    {
-                        "api_status": False,
-                        "detail": "No se encontro ningun tema.",
-                    },
-                    status=status.HTTP_404_NOT_FOUND,
+                return StreamingHttpResponse(
+                    {"No existe el tema."},
+                    status=404,
                 )
 
             # obtener el tema
@@ -217,17 +218,19 @@ class AIEvaluateQuestions(APIView):
 
             # Unir todo en un texto plano con saltos de linea para cada pregunta y respuesta
             question_plain_text = "\n".join(text_output)
-            user_auth = Auth.user(request)
 
             base_url = env("AI_BASE_URL")
             access_token = env("AI_ACCESS_TOKEN")
+            evaluation_questions = {
+                "tema": tema,
+                "user_auth": user_auth,
+                "questions": question_plain_text,
+            }
 
             chat_completion = create_chat_completion(
                 base_url=base_url,
                 access_token=access_token,
-                tema=tema,
-                user_auth=user_auth,
-                question=question_plain_text,
+                evaluation_questions=evaluation_questions,
             )
 
             # Función generadora para streaming
@@ -251,5 +254,5 @@ class AIEvaluateQuestions(APIView):
 
         except Exception as e:
             return StreamingHttpResponse(
-                {str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {str(e)}, status=500
             )

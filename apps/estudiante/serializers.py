@@ -107,8 +107,6 @@ class CuestionarioEvaluadoOfAISerializer(serializers.ModelSerializer):
 
 
 class ResultadoCuestionarioTemaSerializer(serializers.ModelSerializer):
-    # write_only=True => no se deuelven en las respuestas => cuestionario_evaluado_of_ai
-    cuestionario_evaluado_of_ai = CuestionarioEvaluadoOfAISerializer(write_only=True)
 
     class Meta:
         model = ResultadoCuestionarioTema
@@ -116,6 +114,7 @@ class ResultadoCuestionarioTemaSerializer(serializers.ModelSerializer):
         # campos que no se devuelven en las respuestas
         write_only_fields = ("is_status",)
         read_only_fields = ("created_at",)
+
 
 
 class ProgresoEstudioTemaSerializer(serializers.ModelSerializer):

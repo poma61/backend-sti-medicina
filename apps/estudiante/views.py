@@ -12,10 +12,10 @@ from .utils import process_nested_form_data
 
 from .serializers import (
     UsuarioEstudianteSerializer,
-    ProgresoEstudioSerializer,
-    ResultadoCuestionarioTemaSerializer,
-    ProgresoEstudioTemaSerializer,
-    CuestionarioEvaluadoOfAISerializer,
+    ProgresoEstudioSerializer, #progreso estudio
+    ProgresoEstudioTemaSerializer,  #progreso estudio
+    CuestionarioEvaluadoOfAISerializer,  #progreso estudio
+    ResultadoCuestionarioTemaSerializer,  #progreso estudio
 )
 
 from datetime import datetime, time
@@ -27,6 +27,8 @@ from apps.usuario.permissions import (
     DeleteEstudentPermission,
 )
 
+from itertools import groupby
+from operator import attrgetter
 
 class UsuarioEstListCreateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
@@ -238,7 +240,6 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
     def post(self, request):
         try:
             # Obtenemos estudiante autenticado y si no es estudiante hacemos un return
-
             user = Auth.user(request)
             if user.user_type != "estudiante":
                 return Response(
@@ -407,6 +408,54 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                 "progreso_estudio": progreso_estudio_id,
                 "cuestionario_evaluado_of_ai": cuestionario_evaluado_of_ai.id,
             }
-            serializer = ResultadoCuestionarioTemaSerializer(data=is_data)
+            serializer = ProgresoEstudioSerializer(data=is_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+
+
+class ResultCuestionarioTemaAndEvaluadoOfAIListView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, uuid_progreso_estudio):
+        try:
+            exists_progreso_estudio = ProgresoEstudio.objects.filter(
+                is_status=True, uuid=uuid_progreso_estudio
+            ).exists()
+            if not exists_progreso_estudio:
+                return Response(
+                    {
+                        "payload": [],
+                        "detail": "No se encontro el registro.",
+                        "api_status": False,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            progreso_estudio = ProgresoEstudio.objects.get(uuid=uuid_progreso_estudio)
+
+            resultado_cuestionario_tema  = ResultadoCuestionarioTema.objects.filter(
+                progreso_estudio__id = progreso_estudio.id
+            ).select_related('cuestionario_evaluado_of_ai').order_by('cuestionario_evaluado_of_ai')
+
+            grouped_data = []
+            num = 0
+            for key, group in groupby(resultado_cuestionario_tema, key=attrgetter('cuestionario_evaluado_of_ai')):
+                num+=1
+                # Agrupar los elementos en un diccionario
+                grouped_data.append({
+                'intento': f"Intento {num}"  ,
+                'cuestionario_evaluado_of_ai': CuestionarioEvaluadoOfAISerializer(key).data,
+                'resultado_cuestionario': ResultadoCuestionarioTemaSerializer(list(group), many=True).data
+                })
+
+            return Response(
+                {"payload": grouped_data, "detail": "OK", "api_status": True},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            return Response(
+                {"payload": [], "detail": str(e), "api_status": False},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

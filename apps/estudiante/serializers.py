@@ -105,9 +105,7 @@ class CuestionarioEvaluadoOfAISerializer(serializers.ModelSerializer):
         # campos de solo lectura
         read_only_fields = ("created_at",)
 
-
 class ResultadoCuestionarioTemaSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ResultadoCuestionarioTema
         fields = "__all__"
@@ -115,11 +113,8 @@ class ResultadoCuestionarioTemaSerializer(serializers.ModelSerializer):
         write_only_fields = ("is_status",)
         read_only_fields = ("created_at",)
 
-
-
 class ProgresoEstudioTemaSerializer(serializers.ModelSerializer):
     tema = TemaSerializer(read_only=True)
-
     class Meta:
         model = ProgresoEstudio
         fields = "__all__"
@@ -127,3 +122,4 @@ class ProgresoEstudioTemaSerializer(serializers.ModelSerializer):
         write_only_fields = ("is_status",)
         # Campos de solo lectura
         read_only_fields = ("created_at",)
+

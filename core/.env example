@@ -1,9 +1,12 @@
-SECRET_KEY=
-DEBUG=
+SECRET_KEY=f!8m26#9dspwhayidsa-gjp=(w07v@4w0kh3!-)1$ixb4#!!wb
+DEBUG=True
 
 DATABASE_ENGINE=django.db.backends.postgresql
-DATABASE_NAME=
-DATABASE_USER=
-DATABASE_PASSWORD=
-DATABASE_HOST=
-DATABASE_PORT=
+DATABASE_NAME=db_sti_medicina
+DATABASE_USER=postgres
+DATABASE_PASSWORD=postgres
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+
+AI_BASE_URL=https://lsrkkppjiuwoo83o.us-east-1.aws.endpoints.huggingface.cloud/v1/
+AI_ACCESS_TOKEN=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

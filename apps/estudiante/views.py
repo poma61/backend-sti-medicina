@@ -307,6 +307,7 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
 
                 # Si el estudiante esta siendo evaluado completamos el prorgeso al 100% (1.00)
                 if data.get("finished_tema_and_question"):
+                    
                     data["progress"] = 1.00
                     serializer = ProgresoEstudioSerializer(
                         instance=progreso_estudio, data=data, partial=True
@@ -396,6 +397,7 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
     def save_tema_is_evualuate_question(
         self, questionary, progreso_estudio_id, data_evaluation_of_ai
     ):
+        
         serializer_cuestionario_evaluado_of_ai = CuestionarioEvaluadoOfAISerializer(
             data=data_evaluation_of_ai
         )
@@ -408,7 +410,7 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                 "progreso_estudio": progreso_estudio_id,
                 "cuestionario_evaluado_of_ai": cuestionario_evaluado_of_ai.id,
             }
-            serializer = ProgresoEstudioSerializer(data=is_data)
+            serializer = ResultadoCuestionarioTemaSerializer(data=is_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 

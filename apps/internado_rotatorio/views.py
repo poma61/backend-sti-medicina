@@ -256,3 +256,5 @@ class AIEvaluateQuestions(APIView):
             return StreamingHttpResponse(
                 {str(e)}, status=500
             )
+
+

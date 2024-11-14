@@ -1,20 +1,12 @@
-from django.shortcuts import render
-from .utils import create_chat_completion
+
+from .utils import red_neuronal
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
 from django.http import StreamingHttpResponse
-from rest_framework.permissions import AllowAny
 from gtts import gTTS
 import io
 
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
-
-import environ
-env = environ.Env()
-environ.Env.read_env()
-
 
 class TutorAIGenerateView(APIView):
     authentication_classes = [CustomJWTAuthentication]
@@ -22,23 +14,17 @@ class TutorAIGenerateView(APIView):
 
     def post(self, request):
         try:
-
             user_message = request.data.get("user_message", None)
 
             if user_message is None:
                 return StreamingHttpResponse(f"No hay texto", status=404)
 
-            base_url = env("AI_BASE_URL")
-            access_token = env("AI_ACCESS_TOKEN")
+            # Cargar modelo de red neuronal
+            red_neuronal_artificial = red_neuronal(user_message)
 
-            # iniciar chat con tutor ahi
-            chat_completion = create_chat_completion(
-                base_url, access_token, user_message
-            )
-
-            # Función generadora para streaming
-            def generate():
-                for chunk in chat_completion:
+            # Prediccion del modelo 
+            def predicccion():
+                for chunk in red_neuronal_artificial:
                     # Asegurar de que 'choices' existe y tiene datos
                     if hasattr(chunk, "choices") and len(chunk.choices) > 0:
                         delta_content = chunk.choices[0].delta.content
@@ -47,7 +33,7 @@ class TutorAIGenerateView(APIView):
 
             # Crear una respuesta de streaming
             response = StreamingHttpResponse(
-                generate(), content_type="text/event-stream"
+                predicccion(), content_type="text/event-stream"
             )
             response["X-Accel-Buffering"] = (
                 "no"  # Desactivar el buffering para streaming

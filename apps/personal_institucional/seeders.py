@@ -8,46 +8,33 @@ from apps.personal_institucional.models import PersonalInstitucional
 
 
 @SeederRegistry.register
-class UsuarioSeeder(seeders.Seeder):
-    id = "UsuarioSeeder"
-
+class PersonalInstitucionalSeeder(seeders.Seeder):
+    id = "PersonalInstitucional01"
     # Crear los usuarios
-    data = [
-        {
+    data = {
+        "nombres": "Cecilio",
+        "apellido_paterno": "Poma",
+        "apellido_materno": "Muñoz",
+        "ci": "454545",
+        "ci_expedido": "SC",
+        "genero": "masculino",
+        "fecha_nacimiento": "2000-01-01",
+        "numero_contacto": "1234567",
+        "direccion": " La Paz , Bolivia",
+        "cargo": "Docente",
+        "grado_academico": "Doctor",
+        "usuario": {
             "user": "admin",
             "email": "admin@gmail.com",
             "is_active": True,
             "password": "pbkdf2_sha256$870000$vDxLFnvChTmBHqS286ulQs$c/Mvco/7vyhuWbzlNU/MLVx+jAnANq6t1ifwkMtO/ZU=",  # Contraseña: 1234
             "user_type": "administrativo",
         },
-    ]
+    }
 
     def seed(self):
-        user = Usuario.objects.create(**self.data[0])
+        data_usuario = self.data.pop("usuario")
+        user = Usuario.objects.create(**data_usuario)
         permisos = Permiso.objects.all()
         user.permisos.set(permisos)
-
-
-@SeederRegistry.register
-class PersonalInstitucionalSeeder(seeders.ModelSeeder):
-    id = "PersonalInstitucional"
-    # priority = 1
-    model = PersonalInstitucional
-    data = [
-        {
-            "usuario_id": 1,
-            "nombres": "Carlos",
-            "apellido_paterno": "Perez",
-            "apellido_materno": "Mamani",
-            "ci": "454545",
-            "ci_expedido": "SC",
-            "genero": "masculino",
-            "fecha_nacimiento": "2000-01-01",
-            "numero_contacto": "1234567",
-            "direccion": " La Paz , Bolivia",
-            "cargo": "Docente",
-            "grado_academico": "Doctor",
-        },
-    ]
-
-
+        PersonalInstitucional.objects.create(usuario=user, **self.data)

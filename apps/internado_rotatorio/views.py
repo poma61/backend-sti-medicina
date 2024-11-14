@@ -6,16 +6,10 @@ from rest_framework.response import Response
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
 from apps.authentication.utils import Auth
 
-from .models import Area, Tema
+from .models import Tema
 from .serializers import AreaAndTemaSerializer, TemaSerializer
-from .utils import create_chat_completion
-from openai import OpenAI
+from .utils import red_neuronal
 from django.http import StreamingHttpResponse
-
-import environ
-
-env = environ.Env()
-environ.Env.read_env()
 
 
 class ListTemaView(APIView):
@@ -136,7 +130,8 @@ class AIGenerateQuestionsView(APIView):
     def post(self, request):
         try:
             # verificamos si existe el tema
-            exists_tema = Tema.objects.filter(uuid=request.data.get("uuid")).exists()
+            exists_tema = Tema.objects.filter(
+                uuid=request.data.get("uuid")).exists()
             if not exists_tema:
                 return StreamingHttpResponse(
                     {"No existe el tema."},
@@ -146,18 +141,11 @@ class AIGenerateQuestionsView(APIView):
             tema = Tema.objects.get(uuid=request.data.get("uuid"))
             generate_questions = {"tema": tema}
 
-            base_url = env("AI_BASE_URL")
-            access_token = env("AI_ACCESS_TOKEN")
-
-            chat_completion = create_chat_completion(
-                base_url=base_url,
-                access_token=access_token,
-                generate_questions=generate_questions,
-            )
+            red_neuronal_artificial = red_neuronal(generate_questions=generate_questions)
 
             # Función generadora para streaming
             def generate():
-                for chunk in chat_completion:
+                for chunk in red_neuronal_artificial:
                     # Asegura de que 'choices' existe y tiene datos
                     if hasattr(chunk, "choices") and len(chunk.choices) > 0:
                         delta_content = chunk.choices[0].delta.content
@@ -184,7 +172,6 @@ class AIGenerateQuestionsView(APIView):
 Clase para calificar, evaluar los cuestionarios, generados por la misma ia
 """
 
-
 class AIEvaluateQuestions(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -199,10 +186,11 @@ class AIEvaluateQuestions(APIView):
                 return StreamingHttpResponse(
                     {"El usuario no es un estudiante."},
                     status=403,
-                ) 
+                )
 
             # verificamos si existe el tema
-            exists_tema = Tema.objects.filter(uuid=request_tema.get("uuid")).exists()
+            exists_tema = Tema.objects.filter(
+                uuid=request_tema.get("uuid")).exists()
             if not exists_tema:
                 return StreamingHttpResponse(
                     {"No existe el tema."},
@@ -214,28 +202,23 @@ class AIEvaluateQuestions(APIView):
             # Obtener pregunta  respuesta
             text_output = []
             for row in request_questionary:
-                text_output.append(f"**{row['pregunta']}\nRespuesta:{row['respuesta']}")
+                text_output.append(
+                    f"**{row['pregunta']}\nRespuesta:{row['respuesta']}")
 
             # Unir todo en un texto plano con saltos de linea para cada pregunta y respuesta
             question_plain_text = "\n".join(text_output)
 
-            base_url = env("AI_BASE_URL")
-            access_token = env("AI_ACCESS_TOKEN")
             evaluation_questions = {
                 "tema": tema,
                 "user_auth": user_auth,
                 "questions": question_plain_text,
             }
 
-            chat_completion = create_chat_completion(
-                base_url=base_url,
-                access_token=access_token,
-                evaluation_questions=evaluation_questions,
-            )
+            red_neuronal_artificial = red_neuronal(evaluation_questions=evaluation_questions,)
 
-            # Función generadora para streaming
-            def generate():
-                for chunk in chat_completion:
+            # Función para la predi8ccion
+            def prediccion():
+                for chunk in red_neuronal_artificial:
                     # Asegura de que 'choices' existe y tiene datos
                     if hasattr(chunk, "choices") and len(chunk.choices) > 0:
                         delta_content = chunk.choices[0].delta.content
@@ -244,7 +227,7 @@ class AIEvaluateQuestions(APIView):
 
             # Crear una respuesta de streaming
             response = StreamingHttpResponse(
-                generate(), content_type="text/event-stream"
+                prediccion(), content_type="text/event-stream"
             )
             # Desactivar el buffering para streaming
             response["X-Accel-Buffering"] = "no"
@@ -256,5 +239,3 @@ class AIEvaluateQuestions(APIView):
             return StreamingHttpResponse(
                 {str(e)}, status=500
             )
-
-

@@ -1,6 +1,8 @@
 from rest_framework import serializers
 import re
-import imghdr
+from PIL import Image
+from django.core.exceptions import ValidationError
+
 
 def custom_password_validator(value):
     # Validar que la contraseña tenga al menos 8 caracteres
@@ -32,13 +34,17 @@ def custom_email_validator(value):
     return value
     
 def custom_picture_validator(value):
-        if value:
-            img_type = imghdr.what(value)
-            if img_type not in ['jpeg','png', 'jpg']:
-                raise serializers.ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")
-
-            max_size = 2 * 1024 * 1024  # 3MB
-            if value.size > max_size:
-                raise serializers.ValidationError(f"La imagen no debe superar los 2MB.")
-
-        return value
+    if value:
+        try:
+            # Abre la imagen con Pillow y verifica el formato
+            img = Image.open(value)
+            if img.format.lower() not in ['jpeg', 'png', 'jpg']:
+                raise ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")
+        except IOError:
+            raise ValidationError("El archivo no es una imagen válida.")
+        
+        # Verifica el tamaño máximo de la imagen (2MB)
+        if value.size > 2 * 1024 * 1024:
+            raise ValidationError("La imagen no debe superar los 2MB.")
+    
+    return value

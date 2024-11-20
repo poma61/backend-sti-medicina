@@ -305,7 +305,7 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                 elif new_time > tiempos[7]:
                     data["progress"] = progress[7]
 
-                # Si el estudiante esta siendo evaluado completamos el prorgeso al 100% (1.00)
+                # Si el estudiante esta siendo evaluado completamos el progreso al 100% (1.00)
                 if data.get("finished_tema_and_question"):
                     
                     data["progress"] = 1.00
@@ -329,7 +329,7 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                             "api_status": True,
                             "type": "update",
                         },
-                        status=status.HTTP_201_CREATED,
+                        status=status.HTTP_200_OK,
                     )
                 # caso contrario el estudinate sigue estudiando (leendo el tema)
                 # solo actualizamos si new_time(tiempo actual obtenido del frontend) es mayor que

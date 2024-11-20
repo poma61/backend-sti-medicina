@@ -121,8 +121,6 @@ class DetailTemaView(APIView):
 """
 Clase para generar cuestionario
 """
-
-
 class AIGenerateQuestionsView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -139,9 +137,18 @@ class AIGenerateQuestionsView(APIView):
                 )
             # obtener el tema
             tema = Tema.objects.get(uuid=request.data.get("uuid"))
-            generate_questions = {"tema": tema}
+            is_input = {
+                "generate_questions": {"tema": tema}
+            }
 
-            red_neuronal_artificial = red_neuronal(generate_questions=generate_questions)
+            red_neuronal_artificial = red_neuronal(
+                input=is_input,
+                top_p=0.9,
+                temperature=0.6,
+                max_tokens=2000,
+                stream=True,
+                seed=None
+            )
 
             # Función generadora para streaming
             def generate():
@@ -171,7 +178,6 @@ class AIGenerateQuestionsView(APIView):
 """
 Clase para calificar, evaluar los cuestionarios, generados por la misma ia
 """
-
 class AIEvaluateQuestions(APIView):
     authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -208,15 +214,23 @@ class AIEvaluateQuestions(APIView):
             # Unir todo en un texto plano con saltos de linea para cada pregunta y respuesta
             question_plain_text = "\n".join(text_output)
 
-            evaluation_questions = {
-                "tema": tema,
-                "user_auth": user_auth,
-                "questions": question_plain_text,
+            is_input = {
+                "evaluation_questions": {
+                    "tema": tema,
+                    "user_auth": user_auth,
+                    "questions": question_plain_text,
+                }
             }
+            red_neuronal_artificial = red_neuronal(
+                input=is_input,
+                top_p=0.9,
+                temperature=0.6,
+                max_tokens=2000,
+                stream=True,
+                seed=None
+            )
 
-            red_neuronal_artificial = red_neuronal(evaluation_questions=evaluation_questions,)
-
-            # Función para la predi8ccion
+            # Función para la prediccion
             def prediccion():
                 for chunk in red_neuronal_artificial:
                     # Asegura de que 'choices' existe y tiene datos

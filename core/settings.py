@@ -1,5 +1,4 @@
 from pathlib import Path
-from corsheaders.defaults import default_headers
 import os
 import environ
 from datetime import timedelta
@@ -8,21 +7,23 @@ from csp.constants import SELF
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
-
 environ.Env.read_env()
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = not env.bool("RENDER", default=False)
 
-# SECURITY WARNING: keep the secret key used in production secret!
+
 SECRET_KEY = env("SECRET_KEY")
 
 # Hosts del backend
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "192.168.0.200",
+    "192.168.0.92",
 ]
+# Dominio que nos proporciona render
+RENDER_EXTERNAL_HOSTNAME = env.bool("RENDER_EXTERNAL_HOSTNAME", default=False)
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(env("RENDER_EXTERNAL_HOSTNAME"))
 
 DJANGO_APPS = [
     "django.contrib.auth",  # Vuelve a agregar esta línea
@@ -43,7 +44,6 @@ THIRD_PARTY_APPS = [
     "csp",
 ]
 
-
 PROJECT_APPS = [
     # Aplicaciones del proyecto
     "apps.usuario",
@@ -58,9 +58,11 @@ INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     # corsheaders
-    "corsheaders.middleware.CorsMiddleware",
+     "corsheaders.middleware.CorsMiddleware",
+
     # corsheaders Debe estar antes de CommonMiddleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -73,19 +75,20 @@ MIDDLEWARE = [
 
 # Hosts del frontend
 # Los llamados autorizados
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://192.168.0.200:3000",
-]
-# CSRF_COOKIE_DOMAIN = 'http://localhost:3000'
+# CORS_ALLOWED_ORIGINS = [
+  #  "http://localhost:3000",
+# ]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF_COOKIE_DOMAIN = 'http://localhost:8080'
 # verificar
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://192.168.0.200:3000",
-]
-# CORS_ALLOW_ALL_ORIGINS = True
+#CSRF_TRUSTED_ORIGINS = [
+#   "http://localhost:3000",
+# ]
+CSRF_TRUSTED_ALL_ORIGINS = True
+
+
 # Para permitir el contenido
 CORS_ALLOW_HEADERS = (
     "accept",
@@ -121,27 +124,26 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = "core.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+import dj_database_url
 DATABASES = {
-    "default": {
+    'default': dj_database_url.config(
+       # default='postgresql://db_intern_ai_medicina_user:Vgx9LxprTXmION7H2MefOtL7MYGtXjfx@dpg-csr82mbtq21c7393k4cg-a/db_intern_ai_medicina',
+        default='postgresql://postgres:postgres@localhost:5432/db_sti_medicina',
+        conn_max_age=600
+    ),
+    "other": {
         "ENGINE": env("DATABASE_ENGINE"),
         "NAME": env("DATABASE_NAME"),
         "USER": env("DATABASE_USER"),
         "PASSWORD": env("DATABASE_PASSWORD"),
         "HOST": env("DATABASE_HOST"),
         "PORT": env("DATABASE_PORT"),
-    }
+    },
+    
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -160,8 +162,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = "es"
 
 TIME_ZONE = "America/La_Paz"
@@ -172,20 +172,20 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = "static/"
-# STATICFILES_DIRS = [
-#    BASE_DIR / "static",
-# ]
+
+if not DEBUG:
+    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+    # and renames the files with unique names for each version to support long-term caching
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "media/"
 
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
@@ -199,11 +199,6 @@ REST_FRAMEWORK = {
     ),
 }
 
-
-# verificar si se necesita caso caontrario eliminar.
-# AUTHENTICATION_BACKENDS = (
-#   'django.contrib.auth.backends.ModelBackend',
-# )
 
 # Permisos de los archivos, para no tener error al subirlos
 FILE_UPLOAD_PERMISSIONS = 0o640
@@ -221,7 +216,6 @@ SIMPLE_JWT = {
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 #X_FRAME_OPTIONS = 'ALLOW-FROM http://localhost:3000'
-
 # CSP_FRAME_ANCESTORS = ["'self'", "http://127.0.0.1:3000"]
 
 CONTENT_SECURITY_POLICY = {

@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from apps.usuario.models import Usuario
-from django.contrib.auth.hashers import make_password
 from .utils import Auth
 from .validators import custom_password_validator, custom_email_validator
-import imghdr
+from PIL import Image
 import os
 from django.conf import settings
 
@@ -56,15 +55,19 @@ class AuthUsuarioSerializer(serializers.ModelSerializer):
     def validate_new_password(self, value):
         return custom_password_validator(value)
 
-    def validate_picture(self, value):
+    def custom_picture_validator(value):
         if value:
-            max_size = 2 * 1024 * 1024  # 2MB
-            if value.size > max_size:
-                raise serializers.ValidationError(f"La imagen no debe superar los 2MB.")
-
-            img_type = imghdr.what(value)
-            if img_type not in ['jpeg','png', 'jpg']:
-                raise serializers.ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")
+            try:
+                # Abre la imagen con Pillow y verifica el formato
+                img = Image.open(value)
+                if img.format.lower() not in ['jpeg', 'png', 'jpg']:
+                    raise serializers.ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")
+            except IOError:
+                raise serializers.ValidationError("El archivo no es una imagen válida.")
+        
+        # Verifica el tamaño máximo de la imagen (2MB)
+        if value.size > 2 * 1024 * 1024:
+            raise serializers.ValidationError("La imagen no debe superar los 2MB.")
         return value
 
     # Validación general

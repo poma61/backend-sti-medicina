@@ -11,4 +11,5 @@ psycopg2-binary==2.9.9
 django_csp==4.0b1
 openai==1.52.0
 gtts==2.5.3
-
+dj-database-url==2.3.0
+'whitenoise[brotli]'

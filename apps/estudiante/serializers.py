@@ -13,8 +13,7 @@ from apps.internado_rotatorio.serializers import TemaSerializer
 
 
 class UsuarioEstudianteSerializer(serializers.ModelSerializer):
-    # usuario =  UsuarioSerializer(many=True) # => Espera una lista de usuarios
-    usuario = UsuarioSerializer()  # => Espera solo un usuario
+    usuario = UsuarioSerializer()
 
     class Meta:
         model = Estudiante

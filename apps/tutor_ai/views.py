@@ -20,9 +20,16 @@ class TutorAIGenerateView(APIView):
                 return StreamingHttpResponse(f"No hay texto", status=404)
 
             # Cargar modelo de red neuronal
-            red_neuronal_artificial = red_neuronal(user_message)
+            red_neuronal_artificial = red_neuronal(
+                input = user_message,
+                top_p=0.9,
+                temperature=0.6,
+                max_tokens=2000,
+                stream=True,
+                seed=None,
+            )
 
-            # Prediccion del modelo 
+            # Prediccion del modelo
             def predicccion():
                 for chunk in red_neuronal_artificial:
                     # Asegurar de que 'choices' existe y tiene datos
@@ -64,7 +71,8 @@ class TextToSpeechView(APIView):
             audio_bytes.seek(0)
 
             # Leer el archivo de audio y crear un StreamingHttpResponse
-            response = StreamingHttpResponse(audio_bytes, content_type="audio/mpeg")
+            response = StreamingHttpResponse(
+                audio_bytes, content_type="audio/mpeg")
             response["Content-Disposition"] = 'attachment; filename="audio.mp3"'
             return response
 

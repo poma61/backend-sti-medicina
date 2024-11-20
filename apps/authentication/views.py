@@ -22,7 +22,6 @@ import jwt
 
 from django.conf import settings
 
-
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 

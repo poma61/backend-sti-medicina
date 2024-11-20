@@ -9,7 +9,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path("auth/login/", LoginView.as_view()),
+    path("auth/login/", LoginView.as_view(),name = "n-login"),
     path("auth/me/", UserAuthDataView.as_view()),
     path("auth/user-update/", UserUpdateView.as_view()),
     # URL para renovar access token

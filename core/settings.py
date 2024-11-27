@@ -1,3 +1,4 @@
+import dj_database_url
 from pathlib import Path
 import os
 import environ
@@ -19,11 +20,8 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "192.168.0.92",
+    "145.223.31.70",
 ]
-# Dominio que nos proporciona render
-RENDER_EXTERNAL_HOSTNAME = env.bool("RENDER_EXTERNAL_HOSTNAME", default=False)
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(env("RENDER_EXTERNAL_HOSTNAME"))
 
 DJANGO_APPS = [
     "django.contrib.auth",  # Vuelve a agregar esta línea
@@ -61,7 +59,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     # corsheaders
-     "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 
     # corsheaders Debe estar antes de CommonMiddleware
     "django.middleware.common.CommonMiddleware",
@@ -76,17 +74,17 @@ MIDDLEWARE = [
 # Hosts del frontend
 # Los llamados autorizados
 # CORS_ALLOWED_ORIGINS = [
-  #  "http://localhost:3000",
+#  "http://localhost:3000",
 # ]
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  # permite todo
+CORS_ALLOW_CREDENTIALS = True  # permite todo
 
 # CSRF_COOKIE_DOMAIN = 'http://localhost:8080'
-# verificar
-#CSRF_TRUSTED_ORIGINS = [
+
+# CSRF_TRUSTED_ORIGINS = [
 #   "http://localhost:3000",
 # ]
-CSRF_TRUSTED_ALL_ORIGINS = True
+CSRF_TRUSTED_ALL_ORIGINS = True  # permite todo
 
 
 # Para permitir el contenido
@@ -126,14 +124,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-import dj_database_url
 DATABASES = {
-    'default': dj_database_url.config(
-       # default='postgresql://db_intern_ai_medicina_user:Vgx9LxprTXmION7H2MefOtL7MYGtXjfx@dpg-csr82mbtq21c7393k4cg-a/db_intern_ai_medicina',
-        default='postgresql://postgres:postgres@localhost:5432/db_sti_medicina',
-        conn_max_age=600
-    ),
-    "other": {
+    "default": {
         "ENGINE": env("DATABASE_ENGINE"),
         "NAME": env("DATABASE_NAME"),
         "USER": env("DATABASE_USER"),
@@ -141,9 +133,11 @@ DATABASES = {
         "HOST": env("DATABASE_HOST"),
         "PORT": env("DATABASE_PORT"),
     },
-    
+    'other': dj_database_url.config(
+        default='postgresql://postgres:postgres@localhost:5432/db_sti_medicina',
+        conn_max_age=600
+    ),
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -170,24 +164,17 @@ USE_I18N = True
 USE_L10N = True  # Averiguar que significa
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
-
-if not DEBUG:
-    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
-    # and renames the files with unique names for each version to support long-term caching
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "media/"
 
-
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 
 REST_FRAMEWORK = {
     # Los usuarios que esten autenticados tendran permisos a las clases
@@ -215,16 +202,13 @@ SIMPLE_JWT = {
 
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
-#X_FRAME_OPTIONS = 'ALLOW-FROM http://localhost:3000'
-# CSP_FRAME_ANCESTORS = ["'self'", "http://127.0.0.1:3000"]
 
 CONTENT_SECURITY_POLICY = {
-   "EXCLUDE_URL_PREFIXES": ("/media*", ),
+    "EXCLUDE_URL_PREFIXES": ("/media*", ),
     "DIRECTIVES": {
         "default-src": [SELF,],
         "script-src": [SELF,],
         "img-src": [SELF,],
-       "frame-ancestors": [SELF, "http://localhost:3000", "http://192.168.0.200:3000"],
+        "frame-ancestors": [SELF, "http://localhost:3000", "http://192.168.0.200:3000"],
     },
 }
-

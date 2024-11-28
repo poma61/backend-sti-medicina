@@ -5,7 +5,7 @@ logs
 venv
 db.sqlite3
 __pycache__
-/media/areas-internado-rotatorio/*
+/media/areas-internado-rotatorio/*.pdf
 # Ignorar todo en /media/usuario
 /media/usuario/*
 # Asegurar que default_profile.png NO sea ignorado

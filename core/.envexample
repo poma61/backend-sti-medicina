@@ -8,5 +8,6 @@ DATABASE_PASSWORD=postgres
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 
-AI_BASE_URL=https://lsrkkppjiuwoo83o.us-east-1.aws.endpoints.huggingface.cloud/v1/
+AI_BASE_URL=https://sna38xe97urtxg5f.us-east-1.aws.endpoints.huggingface.cloud/v1/
 AI_ACCESS_TOKEN=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
+    

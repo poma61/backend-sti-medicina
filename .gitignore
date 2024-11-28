@@ -5,6 +5,7 @@ logs
 venv
 db.sqlite3
 __pycache__
+.pytest_cache
 
 # Ignorar todo en media
 /media/*

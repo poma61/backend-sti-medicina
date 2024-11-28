@@ -5,8 +5,8 @@ logs
 venv
 db.sqlite3
 __pycache__
-/media/areas-internado-rotatorio/*.pdf
-!/media/areas-internado-rotatorio/cirugia
+
+/media/areas-internado-rotatorio/cirugia/*
 
 # Ignorar todo en /media/usuario
 /media/usuario/*

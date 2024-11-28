@@ -6,7 +6,7 @@ venv
 db.sqlite3
 __pycache__
 
-/media/areas-internado-rotatorio/cirugia/*
+# /media/areas-internado-rotatorio/*
 
 # Ignorar todo en /media/usuario
 /media/usuario/*

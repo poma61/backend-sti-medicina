@@ -10,8 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env()
 
-DEBUG = not env.bool("RENDER", default=False)
-
+DEBUG = env("DEBUG")
 
 SECRET_KEY = env("SECRET_KEY")
 
@@ -59,7 +58,6 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     # corsheaders
     "corsheaders.middleware.CorsMiddleware",
-
     # corsheaders Debe estar antes de CommonMiddleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -72,9 +70,9 @@ MIDDLEWARE = [
 
 # Hosts del frontend
 # Los llamados autorizados
-# CORS_ALLOWED_ORIGINS = [
-#  "http://localhost:3000",
-# ]
+#CORS_ALLOWED_ORIGINS = [
+ # "http://localhost:3000",
+ #]
 CORS_ALLOW_ALL_ORIGINS = True  # permite todo
 CORS_ALLOW_CREDENTIALS = True  # permite todo
 
@@ -84,7 +82,6 @@ CORS_ALLOW_CREDENTIALS = True  # permite todo
 #   "http://localhost:3000",
 # ]
 CSRF_TRUSTED_ALL_ORIGINS = True  # permite todo
-
 
 # Para permitir el contenido
 CORS_ALLOW_HEADERS = (

@@ -5,4 +5,4 @@ logs
 venv
 db.sqlite3
 __pycache__
-media/areas-internado-rotatorio
+/media/areas-internado-rotatorio/

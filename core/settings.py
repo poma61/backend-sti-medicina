@@ -205,6 +205,6 @@ CONTENT_SECURITY_POLICY = {
         "default-src": [SELF,],
         "script-src": [SELF,],
         "img-src": [SELF,],
-        "frame-ancestors": [SELF, "http://localhost:3000", "http://192.168.0.200:3000"],
+        "frame-ancestors": [SELF, "http://localhost:3000", "https://www.intern-ai-medicina-upea.site"],
     },
 }

@@ -14,7 +14,7 @@ urlpatterns = [
     path("api/", include("apps.internado_rotatorio.urls")),  
 ]
    
-# Para agregar media
-urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)   
 
-
+# Solo en modo de desarrollo (DEBUG=True)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -99,6 +99,7 @@ CORS_ALLOW_METHODS = (
     "POST",
     "PUT",
     "DELETE",
+    "OPTIONS",
 )
 
 ROOT_URLCONF = "core.urls"

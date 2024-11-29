@@ -99,7 +99,6 @@ CORS_ALLOW_METHODS = (
     "POST",
     "PUT",
     "DELETE",
-    "OPTIONS",
 )
 
 ROOT_URLCONF = "core.urls"
@@ -163,10 +162,10 @@ USE_L10N = True  # Averiguar que significa
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 

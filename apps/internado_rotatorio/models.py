@@ -10,7 +10,7 @@ def pdf_directory_path(instance, filename):
     unique_filename = (
         f"{get_random_string(length=10)}_{get_random_string(length=10)}_{filename}"
     )
-    pdf_directory = f"areas-internado-rotatorio/{instance.area.name}/"
+    pdf_directory = f"internado-rotatorio/{instance.area.name}/"
 
     # Devuelve la ruta donde se guardará la nueva imagen
     return os.path.join(pdf_directory, unique_filename)

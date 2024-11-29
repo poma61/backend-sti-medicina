@@ -60,8 +60,8 @@ class ResultadoCuestionarioTema(models.Model):
         on_delete=models.CASCADE,
         related_name="resultado_cuestionario_tema",
     )
-    pregunta = models.CharField(max_length=300)
-    respuesta = models.CharField(max_length=300)
+    pregunta = models.CharField(max_length=400)
+    respuesta = models.CharField(max_length=400, blank=True, null=True)
     cuestionario_evaluado_of_ai = models.ForeignKey(
         CuestionarioEvaluadoOfAI,
         on_delete=models.CASCADE,

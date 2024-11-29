@@ -359,8 +359,9 @@ class ProgresoEstudioListCreateOrUpdateView(APIView):
                         status=status.HTTP_206_PARTIAL_CONTENT,
                     )
             else:
+                 # si no existe un progreso de estudio hacemos un create
                 data["progress"] = 0.05  # inizializamos el progreso en 5% (0.05)
-                # si no existe un progreso de estudio hacemos un create
+
                 serializer = ProgresoEstudioSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()

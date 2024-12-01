@@ -1,6 +1,8 @@
 from rest_framework import serializers
 import re
 
+from PIL import Image
+
 def custom_password_validator(value):
     # Validar que la contraseña tenga al menos 8 caracteres
     if len(value) < 8:
@@ -30,3 +32,17 @@ def custom_email_validator(value):
         )
     return value
     
+def custom_picture_validator(value):
+        if value:
+            try:
+                # Abre la imagen con Pillow y verifica el formato
+                img = Image.open(value)
+                if img.format.lower() not in ['jpeg', 'png', 'jpg']:
+                    raise serializers.ValidationError("Solo se permiten imágenes JPEG, JPG y PNG.")
+            except IOError:
+                raise serializers.ValidationError("El archivo no es una imagen válida.")
+        
+        # Verifica el tamaño máximo de la imagen (2MB)
+        if value.size > 2 * 1024 * 1024:
+            raise serializers.ValidationError("La imagen no debe superar los 2MB.")
+        return value

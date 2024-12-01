@@ -14,7 +14,7 @@ class AreaInternadoRotatorioSeeder(seeders.ModelSeeder):
             "name": "medicina-interna",
         },
         {
-            "name": "cirurgia",
+            "name": "cirugia",
         },
         {
             "name": "pediatria",

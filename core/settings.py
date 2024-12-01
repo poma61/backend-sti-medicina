@@ -24,7 +24,8 @@ ALLOWED_HOSTS = [
 ]
 
 DJANGO_APPS = [
-    "django.contrib.auth",  # Vuelve a agregar esta línea
+    "django.contrib.admin",
+    "django.contrib.auth",  
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -119,6 +120,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
@@ -172,6 +174,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+
 REST_FRAMEWORK = {
     # Los usuarios que esten autenticados tendran permisos a las clases
     "DEFAULT_PERMISSION_CLASSES": [
@@ -182,7 +185,6 @@ REST_FRAMEWORK = {
     ),
 }
 
-
 # Permisos de los archivos, para no tener error al subirlos
 FILE_UPLOAD_PERMISSIONS = 0o640
 
@@ -190,12 +192,11 @@ FILE_UPLOAD_PERMISSIONS = 0o640
 AUTH_USER_MODEL = "usuario.Usuario"
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=240),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ALGORITHM": "HS256",
     "SIGNING_KEY": env("SECRET_KEY"),
 }
-
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 

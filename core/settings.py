@@ -21,6 +21,7 @@ ALLOWED_HOSTS = [
     "192.168.0.92",
     "www.core-intern-ai-medicina-upea.site",
     "core-intern-ai-medicina-upea.site",
+    "*"
 ]
 
 DJANGO_APPS = [

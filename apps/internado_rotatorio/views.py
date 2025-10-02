@@ -10,7 +10,7 @@ from .models import Tema
 from .serializers import AreaAndTemaSerializer, TemaSerializer
 from .utils import red_neuronal
 from django.http import StreamingHttpResponse
-
+import json
 
 class ListTemaView(APIView):
     authentication_classes = [CustomJWTAuthentication]
@@ -137,27 +137,43 @@ class AIGenerateQuestionsView(APIView):
                 )
             # obtener el tema
             tema = Tema.objects.get(uuid=request.data.get("uuid"))
-            is_input = {
+            is_prompt = {
                 "generate_questions": {"tema": tema}
             }
 
             red_neuronal_artificial = red_neuronal(
-                input=is_input,
+                prompt=is_prompt,
                 top_p=0.9,
                 temperature=0.6,
                 max_tokens=2000,
-                stream=True,
                 seed=None
             )
 
-            # Función generadora para streaming
+            # Prediccion del modelo
             def generate():
-                for chunk in red_neuronal_artificial:
-                    # Asegura de que 'choices' existe y tiene datos
-                    if hasattr(chunk, "choices") and len(chunk.choices) > 0:
-                        delta_content = chunk.choices[0].delta.content
-                        if delta_content:  # Verificar que el contenido no esté vacío
-                            yield delta_content  # Enviar el contenido como parte de la respuesta de streaming
+                for line in red_neuronal_artificial:
+                    if line:
+                        decoded = line.decode("utf-8")
+                        if decoded.startswith("data: "):
+                            chunk = decoded[len("data: "):]
+                            if chunk.strip() == "[DONE]":
+                                break
+                            try:
+                                data = json.loads(chunk)
+                                delta = data["choices"][0]["delta"].get("content")
+                                if delta:
+                                    yield delta
+                            except Exception:
+                                continue
+                            
+            # # Función generadora para streaming
+            # def generate():
+            #     for chunk in red_neuronal_artificial:
+            #         # Asegura de que 'choices' existe y tiene datos
+            #         if hasattr(chunk, "choices") and len(chunk.choices) > 0:
+            #             delta_content = chunk.choices[0].delta.content
+            #             if delta_content:  # Verificar que el contenido no esté vacío
+            #                 yield delta_content  # Enviar el contenido como parte de la respuesta de streaming
 
             # Crear una respuesta de streaming
             response = StreamingHttpResponse(
@@ -214,7 +230,7 @@ class AIEvaluateQuestions(APIView):
             # Unir todo en un texto plano con saltos de linea para cada pregunta y respuesta
             question_plain_text = "\n".join(text_output)
 
-            is_input = {
+            is_prompt = {
                 "evaluation_questions": {
                     "tema": tema,
                     "user_auth": user_auth,
@@ -222,22 +238,38 @@ class AIEvaluateQuestions(APIView):
                 }
             }
             red_neuronal_artificial = red_neuronal(
-                input=is_input,
+                prompt=is_prompt,
                 top_p=0.9,
                 temperature=0.6,
                 max_tokens=2000,
-                stream=True,
                 seed=None
             )
-
-            # Función para la prediccion
+            
+            # Prediccion del modelo
             def prediccion():
-                for chunk in red_neuronal_artificial:
-                    # Asegura de que 'choices' existe y tiene datos
-                    if hasattr(chunk, "choices") and len(chunk.choices) > 0:
-                        delta_content = chunk.choices[0].delta.content
-                        if delta_content:  # Verificar que el contenido no esté vacío
-                            yield delta_content  # Enviar el contenido como parte de la respuesta de streaming
+                for line in red_neuronal_artificial:
+                    if line:
+                        decoded = line.decode("utf-8")
+                        if decoded.startswith("data: "):
+                            chunk = decoded[len("data: "):]
+                            if chunk.strip() == "[DONE]":
+                                break
+                            try:
+                                data = json.loads(chunk)
+                                delta = data["choices"][0]["delta"].get("content")
+                                if delta:
+                                    yield delta
+                            except Exception:
+                                continue
+                            
+            # # Función para la prediccion
+            # def prediccion():
+            #     for chunk in red_neuronal_artificial:
+            #         # Asegura de que 'choices' existe y tiene datos
+            #         if hasattr(chunk, "choices") and len(chunk.choices) > 0:
+            #             delta_content = chunk.choices[0].delta.content
+            #             if delta_content:  # Verificar que el contenido no esté vacío
+            #                 yield delta_content  # Enviar el contenido como parte de la respuesta de streaming
 
             # Crear una respuesta de streaming
             response = StreamingHttpResponse(

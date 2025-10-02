@@ -6,6 +6,8 @@ from django.http import StreamingHttpResponse
 from gtts import gTTS
 import io
 
+import json
+
 from apps.authentication.jwt_authentication import CustomJWTAuthentication
 
 class TutorAIGenerateView(APIView):
@@ -21,26 +23,44 @@ class TutorAIGenerateView(APIView):
 
             # Cargar modelo de red neuronal
             red_neuronal_artificial = red_neuronal(
-                input = user_message,
+                prompt = user_message,
                 top_p=0.9,
                 temperature=0.6,
                 max_tokens=2000,
-                stream=True,
                 seed=None,
             )
 
             # Prediccion del modelo
-            def predicccion():
-                for chunk in red_neuronal_artificial:
-                    # Asegurar de que 'choices' existe y tiene datos
-                    if hasattr(chunk, "choices") and len(chunk.choices) > 0:
-                        delta_content = chunk.choices[0].delta.content
-                        if delta_content:  # Verificar que el contenido no esté vacío
-                            yield delta_content  # Enviar el contenido como parte de la respuesta de streaming
+            def prediccion():
+                for line in red_neuronal_artificial:
+                    if line:
+                        decoded = line.decode("utf-8")
+                        if decoded.startswith("data: "):
+                            chunk = decoded[len("data: "):]
+                            if chunk.strip() == "[DONE]":
+                                break
+                            try:
+                                data = json.loads(chunk)
+                                delta = data["choices"][0]["delta"].get("content")
+                                if delta:
+                                    yield delta
+                            except Exception:
+                                continue
+                            
+            # # Prediccion del modelo
+            # def predicccion():
+            #     for chunk in red_neuronal_artificial:
+            #         # Asegurar de que 'choices' existe y tiene datos
+            #         if hasattr(chunk, "choices") and len(chunk.choices) > 0:
+            #             delta_content = chunk.choices[0].delta.content
+            #             if delta_content:  # Verificar que el contenido no esté vacío
+            #                 yield delta_content  # Enviar el contenido como parte de la respuesta de streaming
 
+          
+                
             # Crear una respuesta de streaming
             response = StreamingHttpResponse(
-                predicccion(), content_type="text/event-stream"
+                prediccion(), content_type="text/event-stream"
             )
             response["X-Accel-Buffering"] = (
                 "no"  # Desactivar el buffering para streaming
